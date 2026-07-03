@@ -1,5 +1,5 @@
 import { UserOutput } from 'src/modules/users/application/dto/outputs/user.output';
-import { UserResponseDto } from '../responses/user.response';
+import { UserResponseDto } from '../dto/responses/user.response';
 
 export const toResponse = (user: UserOutput): UserResponseDto => {
   return {
