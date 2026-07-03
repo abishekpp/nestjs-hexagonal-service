@@ -1,0 +1,15 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: nestjs-boilerplate-api
+
+    ports:
+      - '3000:3000'
+
+    env_file:
+      - .env
+
+    restart: unless-stopped

@@ -1,0 +1,98 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.15/schema.json",
+
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+
+  "files": {
+    "ignoreUnknown": true,
+    "includes": [
+      "**",
+      "!!dist",
+      "!!node_modules",
+      "!!coverage",
+      "!!.scannerwork",
+      "!!.husky",
+      "!!.github",
+      "!!*.log",
+      "!!**/*.spec.js",
+      "!!**/*.e2e-spec.js"
+    ]
+  },
+
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100,
+    "lineEnding": "lf",
+    "formatWithErrors": false,
+    "attributePosition": "auto"
+  },
+
+  "linter": {
+    "enabled": true,
+
+    "rules": {
+      "recommended": true,
+
+      "style": {
+        "useConst": "error",
+        "useTemplate": "warn",
+        "useBlockStatements": "error",
+        "noParameterAssign": "error",
+        "useNodejsImportProtocol": "off",
+        "noProcessEnv": "off",
+        "useImportType": "off"
+      },
+
+      "suspicious": {
+        "noConsole": "error",
+        "noDoubleEquals": "error",
+        "noExplicitAny": "warn"
+      },
+
+      "correctness": {
+        "noUnusedVariables": "warn"
+      },
+
+      "complexity": {
+        "noExcessiveCognitiveComplexity": "warn",
+        "useOptionalChain": "warn"
+      },
+
+      "performance": {
+        "noDelete": "warn"
+      }
+    }
+  },
+
+  "javascript": {
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
+    },
+
+    "formatter": {
+      "quoteStyle": "single",
+      "semicolons": "always",
+      "trailingCommas": "all",
+      "arrowParentheses": "always",
+      "bracketSpacing": true,
+      "bracketSameLine": false,
+      "quoteProperties": "asNeeded"
+    }
+  },
+
+  "json": {
+    "formatter": {
+      "enabled": true
+    }
+  },
+
+  "assist": {
+    "enabled": false
+  }
+}

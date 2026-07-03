@@ -1,0 +1,19 @@
+# EXAMPLE USAGE:
+#
+#   Refer for explanation to following link:
+#   https://lefthook.dev/configuration/
+
+pre-commit:
+  parallel: true
+
+  commands:
+    biome:
+      run: npx lint-staged
+
+pre-push:
+  commands:
+    build:
+      run: npm run build
+
+    tests:
+      run: npm run test:ci
