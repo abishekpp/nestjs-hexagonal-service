@@ -1,10 +1,17 @@
 import { Controller } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';
+import { CreateTransmittalUseCase } from '../../../../application/use-cases/create-transmittal.use-case';
+import { GetTransmittalByIdUseCase } from '../../../../application/use-cases/get-transmittal-by-id.use-case';
 
 @Controller()
 export class TransmittalsGrpcController {
+  constructor(
+    private readonly createTransmittalUseCase: CreateTransmittalUseCase,
+    private readonly getTransmittalByIdUseCase: GetTransmittalByIdUseCase,
+  ) {}
+
   @GrpcMethod('TransmittalService', 'CreateTransmittal')
-  createTransmittal(data: {
+  async createTransmittal(data: {
     projectId: string;
     subject: string;
     documentIds: string[];
@@ -13,28 +20,37 @@ export class TransmittalsGrpcController {
     remarks?: string;
     createdBy: string;
   }) {
-    return {
-      id: 'trn-uuid-001',
-      transmittalNumber: 'TRN-2026-0001',
-      status: 'DRAFT',
-      createdAt: new Date().toISOString(),
-    };
+    return this.createTransmittalUseCase.execute({
+      projectId: data.projectId,
+      subject: data.subject,
+      documentIds: data.documentIds ?? [],
+      recipientIds: data.recipientIds ?? [],
+      dueDate: data.dueDate,
+      remarks: data.remarks,
+      createdBy: data.createdBy,
+    });
   }
 
   @GrpcMethod('TransmittalService', 'GetTransmittalById')
-  getTransmittalById(data: { id: string }) {
-    return {
-      id: data.id,
-      transmittalNumber: 'TRN-2026-0001',
-      projectId: 'project-uuid',
-      subject: 'Issued for review - HVAC shop drawings',
-      documentIds: ['doc-1', 'doc-2'],
-      recipientIds: ['user-1', 'user-2'],
-      status: 'DRAFT',
-      dueDate: '2026-07-15',
-      remarks: 'Please review and respond within 7 days.',
-      createdBy: 'current-user-id',
-      createdAt: new Date().toISOString(),
-    };
+  async getTransmittalById(data: { id: string }) {
+    const transmittal = await this.getTransmittalByIdUseCase.execute(data.id);
+
+    if (!transmittal) {
+      return {
+        id: '',
+        transmittalNumber: '',
+        projectId: '',
+        subject: '',
+        documentIds: [],
+        recipientIds: [],
+        status: '',
+        dueDate: '',
+        remarks: '',
+        createdBy: '',
+        createdAt: '',
+      };
+    }
+
+    return transmittal;
   }
 }
