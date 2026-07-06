@@ -4,6 +4,7 @@ import { TRANSMITTAL_REPOSITORY_PORT } from '../../ports/out/transmittal.reposit
 import type { TransmittalRepositoryPort } from '../../ports/out/transmittal.repository.port';
 import { CreateTransmittalInput } from '../dto/inputs/create-transmittal.input';
 import { CreateTransmittalOutput } from '../dto/outputs/create-transmittal.output';
+import { ApplicationException } from 'src/common/exceptions/application.exception';
 
 @Injectable()
 export class CreateTransmittalUseCase {
@@ -13,6 +14,9 @@ export class CreateTransmittalUseCase {
   ) {}
 
   async execute(input: CreateTransmittalInput): Promise<CreateTransmittalOutput> {
+    // Validate business rules
+    this.validateBusinessRules(input);
+
     const transmittal = Transmittal.create(input);
 
     const created = await this.transmittalRepository.create(transmittal);
@@ -23,5 +27,68 @@ export class CreateTransmittalUseCase {
       status: created.status,
       createdAt: created.createdAt.toISOString(),
     };
+  }
+
+  private validateBusinessRules(input: CreateTransmittalInput): void {
+    const duplicateDocumentIds = this.findDuplicates(input.documentIds);
+
+    if (duplicateDocumentIds.length > 0) {
+      throw new ApplicationException(
+        `Duplicate document ids are not allowed: ${duplicateDocumentIds.join(', ')}`,
+        'DUPLICATE_DOCUMENT_IDS',
+      );
+    }
+
+    const duplicateRecipientIds = this.findDuplicates(input.recipientIds);
+
+    if (duplicateRecipientIds.length > 0) {
+      throw new ApplicationException(
+        `Duplicate recipient ids are not allowed: ${duplicateRecipientIds.join(', ')}`,
+        'DUPLICATE_RECIPIENT_IDS',
+      );
+    }
+
+    if (input.documentIds.length > 50) {
+      throw new ApplicationException(
+        'A transmittal cannot contain more than 50 documents',
+        'TRANSMITTAL_DOCUMENT_LIMIT_EXCEEDED',
+      );
+    }
+
+    if (input.recipientIds.length > 100) {
+      throw new ApplicationException(
+        'A transmittal cannot contain more than 100 recipients',
+        'TRANSMITTAL_RECIPIENT_LIMIT_EXCEEDED',
+      );
+    }
+
+    if (input.dueDate && this.isPastDate(input.dueDate)) {
+      throw new ApplicationException('Due date cannot be in the past', 'DUE_DATE_CANNOT_BE_PAST');
+    }
+  }
+
+  private findDuplicates(values: string[]): string[] {
+    const seen = new Set<string>();
+    const duplicates = new Set<string>();
+
+    for (const value of values) {
+      if (seen.has(value)) {
+        duplicates.add(value);
+      }
+
+      seen.add(value);
+    }
+
+    return Array.from(duplicates);
+  }
+
+  private isPastDate(dateString: string): boolean {
+    const inputDate = new Date(dateString);
+    const today = new Date();
+
+    inputDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+
+    return inputDate < today;
   }
 }

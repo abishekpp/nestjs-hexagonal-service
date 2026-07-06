@@ -3,6 +3,7 @@ import { GrpcMethod, Payload } from '@nestjs/microservices';
 import { CreateTransmittalUseCase } from '../../../../application/use-cases/create-transmittal.use-case';
 import { GetTransmittalByIdUseCase } from '../../../../application/use-cases/get-transmittal-by-id.use-case';
 import { CreateTransmittalGrpcRequestDto } from '../dto/create-transmittal-grpc.request';
+import { GetTransmittalByIdGrpcRequestDto } from '../dto/get-transmittal-by-id-grpc.request';
 
 @Controller()
 export class TransmittalsGrpcController {
@@ -25,7 +26,7 @@ export class TransmittalsGrpcController {
   }
 
   @GrpcMethod('TransmittalService', 'GetTransmittalById')
-  async getTransmittalById(@Payload() data: { id: string }) {
+  async getTransmittalById(@Payload() data: GetTransmittalByIdGrpcRequestDto) {
     const transmittal = await this.getTransmittalByIdUseCase.execute(data.id);
 
     if (!transmittal) {
