@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { bootstrapConfig } from './config/lifecycle/bootstrap-config';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { AppModule } from './app.module';
-import { Logger } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { getGrpcPackages, getGrpcProtoPaths } from './config/grpc-contracts.config';
 import { APP_NAME } from './shared/constants/app.constants';
 import { GrpcExceptionFilter } from './common/filters/grpc-exception.filter';
@@ -21,6 +21,14 @@ async function bootstrap() {
       url,
     },
   });
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
 
   app.useGlobalFilters(new GrpcExceptionFilter());
   await app.listen();

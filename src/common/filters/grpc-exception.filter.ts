@@ -1,7 +1,8 @@
-import { ArgumentsHost, Catch, ExceptionFilter, Logger } from '@nestjs/common';
+import { ArgumentsHost, BadRequestException, Catch, ExceptionFilter, Logger } from '@nestjs/common';
 import { status, Metadata } from '@grpc/grpc-js';
 import { throwError } from 'rxjs';
 import { DomainException } from '../exceptions/domain.exception';
+import { ApplicationException } from '../exceptions/application.exception';
 
 type GrpcError = {
   code: status;
@@ -18,6 +19,24 @@ export class GrpcExceptionFilter implements ExceptionFilter {
     if (exception instanceof DomainException) {
       return throwError(() =>
         this.toGrpcError(status.INVALID_ARGUMENT, exception.message, exception.errorCode),
+      );
+    }
+
+    if (exception instanceof ApplicationException) {
+      return throwError(() =>
+        this.toGrpcError(status.INVALID_ARGUMENT, exception.message, exception.errorCode),
+      );
+    }
+
+    if (exception instanceof BadRequestException) {
+      const response = exception.getResponse();
+
+      return throwError(() =>
+        this.toGrpcError(
+          status.INVALID_ARGUMENT,
+          this.getValidationMessage(response),
+          'VALIDATION_ERROR',
+        ),
       );
     }
 
@@ -42,5 +61,19 @@ export class GrpcExceptionFilter implements ExceptionFilter {
       details: message,
       metadata,
     };
+  }
+
+  private getValidationMessage(response: unknown): string {
+    if (typeof response === 'object' && response !== null && 'message' in response) {
+      const message = (response as { message: string | string[] }).message;
+
+      if (Array.isArray(message)) {
+        return message.join(', ');
+      }
+
+      return message;
+    }
+
+    return 'Validation failed';
   }
 }
