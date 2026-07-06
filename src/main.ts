@@ -4,6 +4,7 @@ import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { AppModule } from './app.module';
 import { join } from 'path';
 import { Logger } from '@nestjs/common';
+import { getGrpcPackages, getGrpcProtoPaths } from './config/grpc-contracts.config';
 
 async function bootstrap() {
   await bootstrapConfig();
@@ -12,8 +13,8 @@ async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
     transport: Transport.GRPC,
     options: {
-      package: 'transmittal',
-      protoPath: join(__dirname, 'modules/transmittals/adapters/in/grpc/proto/transmittal.proto'),
+      package: getGrpcPackages(),
+      protoPath: getGrpcProtoPaths(__dirname),
       url: process.env.GRPC_URL ?? '0.0.0.0:50052',
     },
   });
