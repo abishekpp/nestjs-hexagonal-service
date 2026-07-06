@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package transmittal;
+
+service TransmittalService {
+  rpc CreateTransmittal (CreateTransmittalRequest) returns (CreateTransmittalResponse);
+  rpc GetTransmittalById (GetTransmittalByIdRequest) returns (TransmittalResponse);
+}
+
+message CreateTransmittalRequest {
+  string projectId = 1;
+  string subject = 2;
+  repeated string documentIds = 3;
+  repeated string recipientIds = 4;
+  string dueDate = 5;
+  string remarks = 6;
+  string createdBy = 7;
+}
+
+message CreateTransmittalResponse {
+  string id = 1;
+  string transmittalNumber = 2;
+  string status = 3;
+  string createdAt = 4;
+}
+
+message GetTransmittalByIdRequest {
+  string id = 1;
+}
+
+message TransmittalResponse {
+  string id = 1;
+  string transmittalNumber = 2;
+  string projectId = 3;
+  string subject = 4;
+  repeated string documentIds = 5;
+  repeated string recipientIds = 6;
+  string status = 7;
+  string dueDate = 8;
+  string remarks = 9;
+  string createdBy = 10;
+  string createdAt = 11;
+}
