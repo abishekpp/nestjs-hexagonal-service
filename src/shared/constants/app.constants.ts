@@ -1,4 +1,4 @@
-export const APP_NAME = 'NestJS Boilerplate';
+export const APP_NAME = 'nestjs-hexagonal-service';
 
 export const API_PREFIX = 'api';
 

@@ -2,7 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { bootstrapConfig } from './config/lifecycle/bootstrap-config';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { AppModule } from './app.module';
-import { join } from 'path';
 import { Logger } from '@nestjs/common';
 import { getGrpcPackages, getGrpcProtoPaths } from './config/grpc-contracts.config';
 
