@@ -8,6 +8,7 @@ import { ShutdownService } from './config/lifecycle/shutdown.service';
 import { PrismaModule } from './infrastructure/database/prisma/prisma.module';
 import { APP_FILTER } from '@nestjs/core';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
+import { TransmittalsModule } from './modules/transmittals/transmittals.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
     HealthModule,
     UsersModule,
     PrismaModule,
+    TransmittalsModule,
   ],
   controllers: [AppController],
   providers: [
