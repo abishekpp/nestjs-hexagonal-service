@@ -4,6 +4,7 @@ import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
 import { getGrpcPackages, getGrpcProtoPaths } from './config/grpc-contracts.config';
+import { APP_NAME } from './shared/constants/app.constants';
 
 async function bootstrap() {
   await bootstrapConfig();
@@ -20,6 +21,6 @@ async function bootstrap() {
 
   await app.listen();
 
-  logger.log(`gRPC microservice is listening on ${process.env.GRPC_URL ?? '0.0.0.0:50052'}`);
+  logger.log(`${APP_NAME} is listening on ${process.env.GRPC_URL ?? '0.0.0.0:50052'}`);
 }
 bootstrap();
