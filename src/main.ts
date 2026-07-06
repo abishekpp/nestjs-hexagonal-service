@@ -9,18 +9,20 @@ import { APP_NAME } from './shared/constants/app.constants';
 async function bootstrap() {
   await bootstrapConfig();
   const logger: Logger = new Logger(bootstrap.name);
+  const GRPC_PORT = process.env.GRPC_PORT ?? '50052';
+  const url = `0.0.0.0:${GRPC_PORT}`;
 
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
     transport: Transport.GRPC,
     options: {
       package: getGrpcPackages(),
       protoPath: getGrpcProtoPaths(__dirname),
-      url: process.env.GRPC_URL ?? '0.0.0.0:50052',
+      url,
     },
   });
 
   await app.listen();
 
-  logger.log(`${APP_NAME} is listening on ${process.env.GRPC_URL ?? '0.0.0.0:50052'}`);
+  logger.log(`${APP_NAME} is listening on ${url}`);
 }
 bootstrap();
