@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { TrasmittalDomainException } from '../exceptions/transmittal-domain.exception';
 
 export type TransmittalStatus = 'DRAFT' | 'ISSUED' | 'CLOSED';
 
@@ -27,23 +28,29 @@ export class Transmittal {
     createdBy: string;
   }): Transmittal {
     if (!params.projectId?.trim()) {
-      throw new Error('Project id is required');
+      throw new TrasmittalDomainException('Project id is required', 'PROJECT_ID_REQUIRED');
     }
 
     if (!params.subject?.trim()) {
-      throw new Error('Transmittal subject is required');
+      throw new TrasmittalDomainException('Subject is required', 'SUBJECT_REQUIRED');
     }
 
     if (!params.documentIds?.length) {
-      throw new Error('At least one document is required');
+      throw new TrasmittalDomainException(
+        'At least one document is required',
+        'DOCUMENTS_REQUIRED',
+      );
     }
 
     if (!params.recipientIds?.length) {
-      throw new Error('At least one recipient is required');
+      throw new TrasmittalDomainException(
+        'At least one recipient is required',
+        'RECIPIENTS_REQUIRED',
+      );
     }
 
     if (!params.createdBy?.trim()) {
-      throw new Error('Created by is required');
+      throw new TrasmittalDomainException('Created by is required', 'CREATED_BY_REQUIRED');
     }
 
     return new Transmittal(
