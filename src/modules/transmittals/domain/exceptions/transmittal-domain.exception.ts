@@ -1,3 +1,3 @@
 import { DomainException } from 'src/common/exceptions/domain.exception';
 
-export class TrasmittalDomainException extends DomainException {}
+export class TransmittalDomainException extends DomainException {}

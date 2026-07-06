@@ -1,27 +1,24 @@
 import { ArgumentsHost, Catch, ExceptionFilter, Logger } from '@nestjs/common';
-import { DomainException } from '../exceptions/domain.exception';
-import { RpcException } from '@nestjs/microservices';
+import { status, Metadata } from '@grpc/grpc-js';
 import { throwError } from 'rxjs';
-import { status } from '@grpc/grpc-js';
+import { DomainException } from '../exceptions/domain.exception';
+
+type GrpcError = {
+  code: status;
+  message: string;
+  details: string;
+  metadata: Metadata;
+};
 
 @Catch()
 export class GrpcExceptionFilter implements ExceptionFilter {
-  private readonly logger: Logger = new Logger(GrpcExceptionFilter.name);
+  private readonly logger = new Logger(GrpcExceptionFilter.name);
 
   catch(exception: unknown, host: ArgumentsHost) {
     if (exception instanceof DomainException) {
-      return throwError(
-        () =>
-          new RpcException({
-            code: status.INVALID_ARGUMENT,
-            message: exception.message,
-            errorCode: exception.code,
-          }),
+      return throwError(() =>
+        this.toGrpcError(status.INVALID_ARGUMENT, exception.message, exception.errorCode),
       );
-    }
-
-    if (exception instanceof RpcException) {
-      return throwError(() => exception);
     }
 
     if (exception instanceof Error) {
@@ -30,13 +27,20 @@ export class GrpcExceptionFilter implements ExceptionFilter {
       this.logger.error(String(exception));
     }
 
-    return throwError(
-      () =>
-        new RpcException({
-          code: status.INTERNAL,
-          message: 'Internal server error',
-          errorCode: 'INTERNAL_SERVER_ERROR',
-        }),
+    return throwError(() =>
+      this.toGrpcError(status.INTERNAL, 'Internal server error', 'INTERNAL_SERVER_ERROR'),
     );
+  }
+
+  private toGrpcError(code: status, message: string, errorCode: string): GrpcError {
+    const metadata = new Metadata();
+    metadata.set('error-code', errorCode);
+
+    return {
+      code,
+      message,
+      details: message,
+      metadata,
+    };
   }
 }
