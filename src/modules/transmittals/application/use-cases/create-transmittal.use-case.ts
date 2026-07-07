@@ -18,6 +18,8 @@ export class CreateTransmittalUseCase {
     // Validate business rules
     this.validateBusinessRules(input);
 
+    await this.ensureUniqueTransmittal(input);
+
     const transmittal = Transmittal.create(input);
 
     const created = await this.transmittalRepository.create(transmittal);
@@ -99,5 +101,20 @@ export class CreateTransmittalUseCase {
     today.setHours(0, 0, 0, 0);
 
     return inputDate < today;
+  }
+
+  private async ensureUniqueTransmittal(input: CreateTransmittalInput): Promise<void> {
+    const exists = await this.transmittalRepository.existByProjectAndSubject(
+      input.projectId,
+      input.subject,
+    );
+
+    if (exists) {
+      throw new ApplicationException(
+        `A transmittal with the subject "${input.subject}" already exists for project "${input.projectId}"`,
+        'DUPLICATE_TRANSMITTAL_SUBJECT',
+        ExceptionType.CONFLICT,
+      );
+    }
   }
 }

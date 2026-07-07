@@ -39,6 +39,23 @@ export class PrismaTransmittalRepositoryAdapter implements TransmittalRepository
     return this.toDomain(row);
   }
 
+  async existByProjectAndSubject(projectId: string, subject: string): Promise<boolean> {
+    const existing = await this.prisma.transmittal.findFirst({
+      where: {
+        projectId,
+        subject: {
+          equals: subject,
+          mode: 'insensitive',
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    return existing !== null;
+  }
+
   private toDomain(row: {
     id: string;
     transmittalNumber: string;
