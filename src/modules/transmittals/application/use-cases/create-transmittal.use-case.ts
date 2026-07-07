@@ -5,6 +5,7 @@ import type { TransmittalRepositoryPort } from '../../ports/out/transmittal.repo
 import { CreateTransmittalInput } from '../dto/inputs/create-transmittal.input';
 import { CreateTransmittalOutput } from '../dto/outputs/create-transmittal.output';
 import { ApplicationException } from 'src/common/exceptions/application.exception';
+import { ExceptionType } from 'src/shared/enums/exception-type.enum';
 
 @Injectable()
 export class CreateTransmittalUseCase {
@@ -36,6 +37,7 @@ export class CreateTransmittalUseCase {
       throw new ApplicationException(
         `Duplicate document ids are not allowed: ${duplicateDocumentIds.join(', ')}`,
         'DUPLICATE_DOCUMENT_IDS',
+        ExceptionType.VALIDATION,
       );
     }
 
@@ -45,6 +47,7 @@ export class CreateTransmittalUseCase {
       throw new ApplicationException(
         `Duplicate recipient ids are not allowed: ${duplicateRecipientIds.join(', ')}`,
         'DUPLICATE_RECIPIENT_IDS',
+        ExceptionType.VALIDATION,
       );
     }
 
@@ -52,6 +55,7 @@ export class CreateTransmittalUseCase {
       throw new ApplicationException(
         'A transmittal cannot contain more than 50 documents',
         'TRANSMITTAL_DOCUMENT_LIMIT_EXCEEDED',
+        ExceptionType.VALIDATION,
       );
     }
 
@@ -59,11 +63,16 @@ export class CreateTransmittalUseCase {
       throw new ApplicationException(
         'A transmittal cannot contain more than 100 recipients',
         'TRANSMITTAL_RECIPIENT_LIMIT_EXCEEDED',
+        ExceptionType.VALIDATION,
       );
     }
 
     if (input.dueDate && this.isPastDate(input.dueDate)) {
-      throw new ApplicationException('Due date cannot be in the past', 'DUE_DATE_CANNOT_BE_PAST');
+      throw new ApplicationException(
+        'Due date cannot be in the past',
+        'DUE_DATE_CANNOT_BE_PAST',
+        ExceptionType.VALIDATION,
+      );
     }
   }
 

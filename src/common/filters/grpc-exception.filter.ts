@@ -15,7 +15,7 @@ type GrpcError = {
 export class GrpcExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(GrpcExceptionFilter.name);
 
-  catch(exception: unknown, host: ArgumentsHost) {
+  catch(exception: unknown, _host: ArgumentsHost) {
     if (exception instanceof DomainException) {
       return throwError(() =>
         this.toGrpcError(status.INVALID_ARGUMENT, exception.message, exception.errorCode),
@@ -24,7 +24,11 @@ export class GrpcExceptionFilter implements ExceptionFilter {
 
     if (exception instanceof ApplicationException) {
       return throwError(() =>
-        this.toGrpcError(status.INVALID_ARGUMENT, exception.message, exception.errorCode),
+        this.toGrpcError(
+          this.mapApplicationExceptionToGrpcStatus(exception.type),
+          exception.message,
+          exception.errorCode,
+        ),
       );
     }
 
@@ -61,6 +65,26 @@ export class GrpcExceptionFilter implements ExceptionFilter {
       details: message,
       metadata,
     };
+  }
+
+  private mapApplicationExceptionToGrpcStatus(type: ApplicationException['type']): status {
+    switch (type) {
+      case 'CONFLICT':
+        return status.ALREADY_EXISTS;
+
+      case 'NOT_FOUND':
+        return status.NOT_FOUND;
+
+      case 'FORBIDDEN':
+        return status.PERMISSION_DENIED;
+
+      case 'UNAUTHORIZED':
+        return status.UNAUTHENTICATED;
+
+      case 'VALIDATION':
+      default:
+        return status.INVALID_ARGUMENT;
+    }
   }
 
   private getValidationMessage(response: unknown): string {
