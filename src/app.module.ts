@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ShutdownService } from './config/lifecycle/shutdown.service';
 import { PrismaModule } from './infrastructure/database/prisma/prisma.module';
 import { TransmittalsModule } from './modules/transmittals/transmittals.module';
+import { WorkflowsModule } from './modules/workflows/workflows.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { TransmittalsModule } from './modules/transmittals/transmittals.module';
     HealthModule,
     PrismaModule,
     TransmittalsModule,
+    WorkflowsModule,
   ],
   controllers: [AppController],
   providers: [AppService, ShutdownService],

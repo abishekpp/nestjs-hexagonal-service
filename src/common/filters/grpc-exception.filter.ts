@@ -81,7 +81,6 @@ export class GrpcExceptionFilter implements ExceptionFilter {
       case 'UNAUTHORIZED':
         return status.UNAUTHENTICATED;
 
-      case 'VALIDATION':
       default:
         return status.INVALID_ARGUMENT;
     }

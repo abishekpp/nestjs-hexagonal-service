@@ -10,7 +10,10 @@ const CORE_GRPC_CONTRACTS: GrpcContractConfig[] = [
     packageName: 'transmittal',
     protoRelativePath: 'modules/transmittals/adapters/in/grpc/proto/transmittal.proto',
   },
-  // Later add more gRPC contracts here as needed
+  {
+    packageName: 'workflow',
+    protoRelativePath: 'modules/workflows/adapters/in/grpc/proto/workflow.proto',
+  },
 ];
 
 export function getGrpcPackages(): string[] {
