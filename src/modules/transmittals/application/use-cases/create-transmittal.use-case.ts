@@ -6,9 +6,10 @@ import { CreateTransmittalInput } from '../dto/inputs/create-transmittal.input';
 import { CreateTransmittalOutput } from '../dto/outputs/create-transmittal.output';
 import { ApplicationException } from 'src/common/exceptions/application.exception';
 import { ExceptionType } from 'src/shared/enums/exception-type.enum';
+import { CreateTransmittalPort } from '../../ports/in/create-transmittal.port';
 
 @Injectable()
-export class CreateTransmittalUseCase {
+export class CreateTransmittalUseCase implements CreateTransmittalPort {
   constructor(
     @Inject(TRANSMITTAL_REPOSITORY_PORT)
     private readonly transmittalRepository: TransmittalRepositoryPort,

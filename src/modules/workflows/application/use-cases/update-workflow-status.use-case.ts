@@ -5,6 +5,10 @@ import {
   WORKFLOW_REPOSITORY_PORT,
   type WorkflowRepositoryPort,
 } from '../../ports/out/workflow.repository.port';
+import {
+  WORKFLOW_TRANSMITTAL_PORT,
+  type WorkflowTransmittalPort,
+} from '../../ports/out/workflow-transmittal.port';
 import { UpdateWorkflowStatusInput } from '../dto/inputs/update-workflow-status.input';
 import { WorkflowOutput } from '../dto/outputs/workflow.output';
 import { toWorkflowOutput } from './workflow-output.mapper';
@@ -14,6 +18,8 @@ export class UpdateWorkflowStatusUseCase {
   constructor(
     @Inject(WORKFLOW_REPOSITORY_PORT)
     private readonly workflowRepository: WorkflowRepositoryPort,
+    @Inject(WORKFLOW_TRANSMITTAL_PORT)
+    private readonly workflowTransmittal: WorkflowTransmittalPort,
   ) {}
 
   async execute(input: UpdateWorkflowStatusInput): Promise<WorkflowOutput> {
@@ -35,7 +41,20 @@ export class UpdateWorkflowStatusUseCase {
       );
     }
 
-    const completedWorkflow = workflow.complete();
+    const transmittal = await this.workflowTransmittal.createTransmittal({
+      projectId: workflow.projectId,
+      subject: workflow.subject,
+      documentIds: workflow.documentIds,
+      recipientIds: workflow.recipientIds,
+      dueDate: workflow.dueDate ?? undefined,
+      remarks: workflow.remarks ?? undefined,
+      createdBy: workflow.createdBy,
+    });
+
+    const completedWorkflow = workflow.complete({
+      transmittalId: transmittal.id,
+      transmittalNumber: transmittal.transmittalNumber,
+    });
     const updated = await this.workflowRepository.update(completedWorkflow);
 
     return toWorkflowOutput(updated);

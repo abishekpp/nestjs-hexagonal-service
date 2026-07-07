@@ -52,11 +52,25 @@ export class Workflow {
     );
   }
 
-  complete(): Workflow {
+  complete(params: { transmittalId: string; transmittalNumber: string }): Workflow {
     if (this.status !== 'IN_PROGRESS') {
       throw new WorkflowDomainException(
         'Only in-progress workflows can be completed',
         'WORKFLOW_INVALID_STATUS_TRANSITION',
+      );
+    }
+
+    if (!params.transmittalId?.trim()) {
+      throw new WorkflowDomainException(
+        'Transmittal id is required to complete workflow',
+        'WORKFLOW_TRANSMITTAL_ID_REQUIRED',
+      );
+    }
+
+    if (!params.transmittalNumber?.trim()) {
+      throw new WorkflowDomainException(
+        'Transmittal number is required to complete workflow',
+        'WORKFLOW_TRANSMITTAL_NUMBER_REQUIRED',
       );
     }
 
@@ -75,8 +89,8 @@ export class Workflow {
       this.createdAt,
       now,
       now,
-      this.transmittalId,
-      this.transmittalNumber,
+      params.transmittalId.trim(),
+      params.transmittalNumber.trim(),
     );
   }
 
