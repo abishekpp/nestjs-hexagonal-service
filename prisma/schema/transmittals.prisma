@@ -1,0 +1,16 @@
+model Transmittal {
+  id                String   @id @default(uuid())
+  transmittalNumber String   @unique
+  projectId         String
+  subject           String
+  documentIds       Json
+  recipientIds      Json
+  status            String   @default("DRAFT")
+  dueDate           String?
+  remarks           String?
+  createdBy         String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("transmittals")
+}
