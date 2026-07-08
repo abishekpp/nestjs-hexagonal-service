@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { ClientProviderOptions, ClientsModule } from '@nestjs/microservices';
 import { KafkaEmailMessagePublisherAdapter } from './adapters/kafka/kafka-email-message-publisher.adapter';
 import { NoopEmailMessagePublisherAdapter } from './adapters/noop/noop-email-message-publisher.adapter';
@@ -8,6 +8,7 @@ import { EMAIL_MESSAGE_PUBLISHER_PORT } from './ports/email-message-publisher.po
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { getKafkaClientConfig } from 'src/config/kafka/kafka.config';
 
+@Global()
 @Module({
   imports: [
     ClientsModule.registerAsync([
