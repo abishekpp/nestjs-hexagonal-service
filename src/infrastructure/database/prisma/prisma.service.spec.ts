@@ -44,7 +44,7 @@ describe('PrismaService', () => {
   });
 
   it('should disconnect when the module is destroyed', async () => {
-    await service.onModuleDestroy();
+    await service.onApplicationShutdown();
 
     expect(service.$disconnect).toHaveBeenCalledTimes(1);
   });
