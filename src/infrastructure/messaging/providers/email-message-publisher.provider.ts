@@ -1,4 +1,5 @@
 import { Provider } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { KafkaEmailMessagePublisherAdapter } from '../adapters/kafka/kafka-email-message-publisher.adapter';
 import { NoopEmailMessagePublisherAdapter } from '../adapters/noop/noop-email-message-publisher.adapter';
 import {
@@ -9,10 +10,11 @@ import {
 export const EmailMessagePublisherProvider: Provider = {
   provide: EMAIL_MESSAGE_PUBLISHER_PORT,
   useFactory: (
+    configService: ConfigService,
     kafkaAdapter: KafkaEmailMessagePublisherAdapter,
     noopAdapter: NoopEmailMessagePublisherAdapter,
   ): EmailMessagePublisherPort => {
-    const broker = process.env.MESSAGE_BROKER ?? 'kafka';
+    const broker = configService.get<string>('MESSAGE_BROKER', 'kafka');
 
     switch (broker) {
       case 'kafka':
@@ -25,5 +27,5 @@ export const EmailMessagePublisherProvider: Provider = {
         throw new Error(`Unsupported MESSAGE_BROKER: ${broker}`);
     }
   },
-  inject: [KafkaEmailMessagePublisherAdapter, NoopEmailMessagePublisherAdapter],
+  inject: [ConfigService, KafkaEmailMessagePublisherAdapter, NoopEmailMessagePublisherAdapter],
 };

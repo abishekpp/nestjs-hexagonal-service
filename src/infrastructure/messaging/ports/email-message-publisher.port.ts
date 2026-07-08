@@ -1,8 +1,8 @@
 export const EMAIL_MESSAGE_PUBLISHER_PORT = Symbol('EMAIL_MESSAGE_PUBLISHER_PORT');
 
 export type KafkaEmailBody = {
-  senderEmail: string;
-  senderPassword: string;
+  senderEmail?: string;
+  senderPassword?: string;
   receiverEmail: string;
   subject: string;
   body: string;

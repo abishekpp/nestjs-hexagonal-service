@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ClientKafka } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
 import {
@@ -14,6 +15,7 @@ export class KafkaEmailMessagePublisherAdapter implements EmailMessagePublisherP
   constructor(
     @Inject(EMAIL_KAFKA_CLIENT)
     private readonly kafkaClient: ClientKafka,
+    private readonly configService: ConfigService,
   ) {}
 
   async onModuleInit() {
@@ -22,9 +24,15 @@ export class KafkaEmailMessagePublisherAdapter implements EmailMessagePublisherP
   }
 
   async publishEmail(input: KafkaEmailBody): Promise<void> {
-    const topic = process.env.EMAIL_KAFKA_TOPIC ?? 'email.send';
+    const topic = this.configService.get<string>('EMAIL_KAFKA_TOPIC', 'email.send');
+    const payload: KafkaEmailBody = {
+      ...input,
+      senderEmail: input.senderEmail ?? this.configService.get<string>('EMAIL_SENDER_EMAIL', ''),
+      senderPassword:
+        input.senderPassword ?? this.configService.get<string>('EMAIL_SENDER_PASSWORD', ''),
+    };
 
-    await firstValueFrom(this.kafkaClient.emit(topic, input));
+    await firstValueFrom(this.kafkaClient.emit(topic, payload));
 
     this.logger.log(`Published email event to ${input.receiverEmail}`);
   }

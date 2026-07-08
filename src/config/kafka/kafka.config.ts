@@ -6,9 +6,12 @@ export const getKafkaClientConfig = (
   name: string,
   configService: ConfigService,
 ): ClientProviderOptions => {
-  const rawBrokers = configService.get<string>('KAFKA_BROKERS', '');
+  const rawBrokers = configService.get<string>('KAFKA_BROKERS', 'localhost:9092');
   const clientId = configService.get<string>('KAFKA_CLIENT_ID', 'core-service');
-  const brokers = rawBrokers.split(',').map((b) => b.trim());
+  const brokers = rawBrokers
+    .split(',')
+    .map((broker) => broker.trim())
+    .filter(Boolean);
   return {
     name,
     transport: Transport.KAFKA,

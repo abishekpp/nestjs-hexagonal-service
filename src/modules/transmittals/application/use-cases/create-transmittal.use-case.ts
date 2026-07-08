@@ -146,8 +146,6 @@ export class CreateTransmittalUseCase implements CreateTransmittalPort {
     try {
       for (const receiverEmail of created.recipientIds) {
         await this.emailMessagePublisher.publishEmail({
-          senderEmail: process.env.EMAIL_SENDER_EMAIL ?? '',
-          senderPassword: process.env.EMAIL_SENDER_PASSWORD ?? '',
           receiverEmail,
           subject: `Transmittal Created - ${created.transmittalNumber}`,
           body: this.buildTransmittalEmailBody(created),
