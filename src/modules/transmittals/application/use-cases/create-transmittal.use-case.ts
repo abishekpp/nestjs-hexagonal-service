@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Transmittal } from '../../domain/entities/transmittal.entity';
 import { TRANSMITTAL_REPOSITORY_PORT } from '../../ports/out/transmittal.repository.port';
 import type { TransmittalRepositoryPort } from '../../ports/out/transmittal.repository.port';
@@ -7,23 +7,37 @@ import { CreateTransmittalOutput } from '../dto/outputs/create-transmittal.outpu
 import { ApplicationException } from 'src/common/exceptions/application.exception';
 import { ExceptionType } from 'src/shared/enums/exception-type.enum';
 import { CreateTransmittalPort } from '../../ports/in/create-transmittal.port';
+import { EMAIL_MESSAGE_PUBLISHER_PORT } from 'src/infrastructure/messaging/ports/email-message-publisher.port';
+import type { EmailMessagePublisherPort } from 'src/infrastructure/messaging/ports/email-message-publisher.port';
 
 @Injectable()
 export class CreateTransmittalUseCase implements CreateTransmittalPort {
+  private readonly logger = new Logger(CreateTransmittalUseCase.name);
+
   constructor(
     @Inject(TRANSMITTAL_REPOSITORY_PORT)
     private readonly transmittalRepository: TransmittalRepositoryPort,
+
+    @Inject(EMAIL_MESSAGE_PUBLISHER_PORT)
+    private readonly emailMessagePublisher: EmailMessagePublisherPort,
   ) {}
 
+  // Private method to validate business rules
   async execute(input: CreateTransmittalInput): Promise<CreateTransmittalOutput> {
     // Validate business rules
     this.validateBusinessRules(input);
 
+    // Ensure the transmittal is unique for the given project and subject
     await this.ensureUniqueTransmittal(input);
 
+    // Create the transmittal entity
     const transmittal = Transmittal.create(input);
 
+    // Persist the transmittal
     const created = await this.transmittalRepository.create(transmittal);
+
+    // publish to email queue
+    await this.publishEmailEvents(created);
 
     return {
       id: created.id,
@@ -117,5 +131,65 @@ export class CreateTransmittalUseCase implements CreateTransmittalPort {
         ExceptionType.CONFLICT,
       );
     }
+  }
+
+  private async publishEmailEvents(created: {
+    id: string;
+    transmittalNumber: string;
+    projectId: string;
+    subject: string;
+    documentIds: string[];
+    recipientIds: string[];
+    createdBy: string;
+    createdAt: Date;
+  }): Promise<void> {
+    try {
+      for (const receiverEmail of created.recipientIds) {
+        await this.emailMessagePublisher.publishEmail({
+          senderEmail: process.env.EMAIL_SENDER_EMAIL ?? '',
+          senderPassword: process.env.EMAIL_SENDER_PASSWORD ?? '',
+          receiverEmail,
+          subject: `Transmittal Created - ${created.transmittalNumber}`,
+          body: this.buildTransmittalEmailBody(created),
+          attachments: false,
+        });
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        this.logger.error(
+          `Failed to publish transmittal email event: ${error.message}`,
+          error.stack,
+        );
+      } else {
+        this.logger.error('Failed to publish transmittal email event');
+      }
+    }
+  }
+
+  private buildTransmittalEmailBody(created: {
+    transmittalNumber: string;
+    projectId: string;
+    subject: string;
+    documentIds: string[];
+    createdBy: string;
+    createdAt: Date;
+  }): string {
+    return `
+      Dear Recipient,
+
+      A new transmittal has been created.
+
+      Transmittal Number: ${created.transmittalNumber}
+      Subject: ${created.subject}
+      Project ID: ${created.projectId}
+      Created By: ${created.createdBy}
+      Created At: ${created.createdAt.toISOString()}
+
+      Documents:
+      ${created.documentIds.map((id) => `- ${id}`).join('\n')}
+
+      Regards,
+      EDMS System
+      `.trim();
   }
 }

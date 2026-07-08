@@ -3,6 +3,14 @@ export const VAULT_SECRET_KEYS = [
   'NODE_ENV',
   'REQUEST_BODY_LIMIT',
   'CORS_ORIGINS',
+  'DATABASE_URL',
+  'EMAIL_KAFKA_TOPIC',
+  'EMAIL_SENDER_EMAIL',
+  'EMAIL_SENDER_PASSWORD',
+  'GRPC_PORT',
+  'KAFKA_BROKERS',
+  'KAFKA_CLIENT_ID',
+  'MESSAGE_BROKER',
 ] as const;
 
 export type VaultSecretKey = (typeof VAULT_SECRET_KEYS)[number];
