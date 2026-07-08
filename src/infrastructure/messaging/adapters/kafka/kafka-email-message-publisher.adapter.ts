@@ -1,5 +1,3 @@
-// src/infrastructure/messaging/adapters/kafka/kafka-email-message-publisher.adapter.ts
-
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
@@ -17,6 +15,11 @@ export class KafkaEmailMessagePublisherAdapter implements EmailMessagePublisherP
     @Inject(EMAIL_KAFKA_CLIENT)
     private readonly kafkaClient: ClientKafka,
   ) {}
+
+  async onModuleInit() {
+    await this.kafkaClient.connect();
+    this.logger.log('Kafka client connected.');
+  }
 
   async publishEmail(input: KafkaEmailBody): Promise<void> {
     const topic = process.env.EMAIL_KAFKA_TOPIC ?? 'email.send';

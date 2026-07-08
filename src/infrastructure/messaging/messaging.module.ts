@@ -1,24 +1,22 @@
 import { Module } from '@nestjs/common';
-import { ClientsModule, Transport } from '@nestjs/microservices';
+import { ClientProviderOptions, ClientsModule } from '@nestjs/microservices';
 import { KafkaEmailMessagePublisherAdapter } from './adapters/kafka/kafka-email-message-publisher.adapter';
 import { NoopEmailMessagePublisherAdapter } from './adapters/noop/noop-email-message-publisher.adapter';
 import { EMAIL_KAFKA_CLIENT } from './messaging.tokens';
 import { EmailMessagePublisherProvider } from './providers/email-message-publisher.provider';
 import { EMAIL_MESSAGE_PUBLISHER_PORT } from './ports/email-message-publisher.port';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { getKafkaClientConfig } from 'src/config/kafka/kafka.config';
 
 @Module({
   imports: [
-    ClientsModule.register([
+    ClientsModule.registerAsync([
       {
         name: EMAIL_KAFKA_CLIENT,
-        transport: Transport.KAFKA,
-        options: {
-          client: {
-            clientId: process.env.KAFKA_CLIENT_ID ?? 'core-service',
-            brokers: (process.env.KAFKA_BROKERS ?? 'localhost:9092').split(','),
-          },
-          producerOnlyMode: true,
-        },
+        imports: [ConfigModule],
+        inject: [ConfigService],
+        useFactory: (configService: ConfigService): ClientProviderOptions =>
+          getKafkaClientConfig(EMAIL_KAFKA_CLIENT, configService),
       },
     ]),
   ],
