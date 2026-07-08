@@ -7,6 +7,7 @@ import { ShutdownService } from './config/lifecycle/shutdown.service';
 import { PrismaModule } from './infrastructure/database/prisma/prisma.module';
 import { TransmittalsModule } from './modules/transmittals/transmittals.module';
 import { WorkflowsModule } from './modules/workflows/workflows.module';
+import { MessagingModule } from './infrastructure/messaging/messaging.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { WorkflowsModule } from './modules/workflows/workflows.module';
     }),
     HealthModule,
     PrismaModule,
+    MessagingModule,
     TransmittalsModule,
     WorkflowsModule,
   ],

@@ -6,10 +6,9 @@ import { GetTransmittalByIdUseCase } from './application/use-cases/get-transmitt
 import { TRANSMITTAL_REPOSITORY_PORT } from './ports/out/transmittal.repository.port';
 import { PrismaTransmittalRepositoryAdapter } from './adapters/out/persistence/prisma/prisma-transmittal.repository.adapter';
 import { CREATE_TRANSMITTAL_PORT } from './ports/in/create-transmittal.port';
-import { MessagingModule } from 'src/infrastructure/messaging/messaging.module';
 
 @Module({
-  imports: [PrismaModule, MessagingModule],
+  imports: [PrismaModule],
   controllers: [TransmittalsGrpcController],
   providers: [
     CreateTransmittalUseCase,
