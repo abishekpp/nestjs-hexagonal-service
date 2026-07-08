@@ -1,0 +1,1 @@
+export const EMAIL_KAFKA_CLIENT = 'EMAIL_KAFKA_CLIENT';
