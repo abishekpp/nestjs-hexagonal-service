@@ -24,6 +24,9 @@ async function bootstrap() {
     },
   });
 
+  // Graceful shutdown hooks
+  app.enableShutdownHooks();
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

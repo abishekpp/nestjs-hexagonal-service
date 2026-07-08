@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnApplicationShutdown } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ClientKafka } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
@@ -9,7 +9,9 @@ import {
 import { EMAIL_KAFKA_CLIENT } from '../../messaging.tokens';
 
 @Injectable()
-export class KafkaEmailMessagePublisherAdapter implements EmailMessagePublisherPort {
+export class KafkaEmailMessagePublisherAdapter
+  implements EmailMessagePublisherPort, OnApplicationShutdown
+{
   private readonly logger = new Logger(KafkaEmailMessagePublisherAdapter.name);
 
   constructor(
@@ -35,5 +37,11 @@ export class KafkaEmailMessagePublisherAdapter implements EmailMessagePublisherP
     await firstValueFrom(this.kafkaClient.emit(topic, payload));
 
     this.logger.log(`Published email event to ${input.receiverEmail}`);
+  }
+
+  async onApplicationShutdown(signal?: string) {
+    this.logger.log(`Application is shutting down due to signal: ${signal}`);
+    await this.kafkaClient.close();
+    this.logger.log('Kafka client disconnected.');
   }
 }
