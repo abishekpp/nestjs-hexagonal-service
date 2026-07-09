@@ -2,58 +2,49 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../../../infrastructure/database/prisma/prisma.service';
 import { Transmittal, TransmittalStatus } from '../../../../domain/entities/transmittal.entity';
 import { TransmittalRepositoryPort } from '../../../../ports/out/transmittal.repository.port';
+import { BasePrismaRepository } from 'src/infrastructure/database/prisma/repositories/base-prisma.repository';
+import { Transmittal as TransmittalPersistence } from 'generated/prisma/client';
 
 @Injectable()
-export class PrismaTransmittalRepositoryAdapter implements TransmittalRepositoryPort {
-  constructor(private readonly prisma: PrismaService) {}
+export class PrismaTransmittalRepositoryAdapter
+  extends BasePrismaRepository<TransmittalPersistence>
+  implements TransmittalRepositoryPort
+{
+  constructor(prisma: PrismaService) {
+    super(prisma, 'transmittal');
+  }
 
   async create(transmittal: Transmittal): Promise<Transmittal> {
-    const created = await this.prisma.transmittal.create({
-      data: {
-        id: transmittal.id,
-        transmittalNumber: transmittal.transmittalNumber,
-        projectId: transmittal.projectId,
-        subject: transmittal.subject,
-        documentIds: transmittal.documentIds,
-        recipientIds: transmittal.recipientIds,
-        status: transmittal.status,
-        dueDate: transmittal.dueDate,
-        remarks: transmittal.remarks,
-        createdBy: transmittal.createdBy,
-        createdAt: transmittal.createdAt,
-      },
+    const created = await this.createRow({
+      transmittalNumber: transmittal.transmittalNumber,
+      projectId: transmittal.projectId,
+      subject: transmittal.subject,
+      documentIds: transmittal.documentIds,
+      recipientIds: transmittal.recipientIds,
+      status: transmittal.status,
+      dueDate: transmittal.dueDate,
+      remarks: transmittal.remarks,
+      createdBy: transmittal.createdBy,
+      createdAt: transmittal.createdAt,
     });
 
     return this.toDomain(created);
   }
 
   async findById(id: string): Promise<Transmittal | null> {
-    const row = await this.prisma.transmittal.findUnique({
-      where: { id },
-    });
+    const row = await this.findByIdRow(id);
 
-    if (!row) {
-      return null;
-    }
-
-    return this.toDomain(row);
+    return row ? this.toDomain(row) : null;
   }
 
   async existByProjectAndSubject(projectId: string, subject: string): Promise<boolean> {
-    const existing = await this.prisma.transmittal.findFirst({
-      where: {
-        projectId,
-        subject: {
-          equals: subject,
-          mode: 'insensitive',
-        },
-      },
-      select: {
-        id: true,
+    return this.existsRow({
+      projectId,
+      subject: {
+        equals: subject.trim(),
+        mode: 'insensitive',
       },
     });
-
-    return existing !== null;
   }
 
   private toDomain(row: {
