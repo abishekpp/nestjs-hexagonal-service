@@ -1,44 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../../../infrastructure/database/prisma/prisma.service';
-import { Transmittal, TransmittalStatus } from '../../../../domain/entities/transmittal.entity';
+import {
+  Transmittal as TransmittalDomainEntitiy,
+  TransmittalStatus,
+} from '../../../../domain/entities/transmittal.entity';
 import { TransmittalRepositoryPort } from '../../../../ports/out/transmittal.repository.port';
 import { BasePrismaRepository } from 'src/infrastructure/database/prisma/repositories/base-prisma.repository';
 import { Transmittal as TransmittalPersistence } from 'generated/prisma/client';
 
 @Injectable()
 export class PrismaTransmittalRepositoryAdapter
-  extends BasePrismaRepository<TransmittalPersistence>
+  extends BasePrismaRepository<TransmittalDomainEntitiy, TransmittalPersistence>
   implements TransmittalRepositoryPort
 {
   constructor(prisma: PrismaService) {
     super(prisma, 'transmittal');
   }
 
-  async create(transmittal: Transmittal): Promise<Transmittal> {
-    const created = await this.createRow({
-      transmittalNumber: transmittal.transmittalNumber,
-      projectId: transmittal.projectId,
-      subject: transmittal.subject,
-      documentIds: transmittal.documentIds,
-      recipientIds: transmittal.recipientIds,
-      status: transmittal.status,
-      dueDate: transmittal.dueDate,
-      remarks: transmittal.remarks,
-      createdBy: transmittal.createdBy,
-      createdAt: transmittal.createdAt,
-    });
-
-    return this.toDomain(created);
-  }
-
-  async findById(id: string): Promise<Transmittal | null> {
-    const row = await this.findByIdRow(id);
-
-    return row ? this.toDomain(row) : null;
-  }
-
   async existByProjectAndSubject(projectId: string, subject: string): Promise<boolean> {
-    return this.existsRow({
+    return this.existsByWhere({
       projectId,
       subject: {
         equals: subject.trim(),
@@ -47,20 +27,24 @@ export class PrismaTransmittalRepositoryAdapter
     });
   }
 
-  private toDomain(row: {
-    id: string;
-    transmittalNumber: string;
-    projectId: string;
-    subject: string;
-    documentIds: unknown;
-    recipientIds: unknown;
-    status: string;
-    dueDate: string | null;
-    remarks: string | null;
-    createdBy: string;
-    createdAt: Date;
-  }): Transmittal {
-    return new Transmittal(
+  protected toPersistence(entity: Partial<TransmittalDomainEntitiy>): Record<string, unknown> {
+    return {
+      ...(entity.id ? { id: entity.id } : {}),
+      ...(entity.transmittalNumber ? { transmittalNumber: entity.transmittalNumber } : {}),
+      ...(entity.projectId ? { projectId: entity.projectId } : {}),
+      ...(entity.subject ? { subject: entity.subject } : {}),
+      ...(entity.documentIds ? { documentIds: entity.documentIds } : {}),
+      ...(entity.recipientIds ? { recipientIds: entity.recipientIds } : {}),
+      ...(entity.status ? { status: entity.status } : {}),
+      ...(entity.dueDate !== undefined ? { dueDate: entity.dueDate } : {}),
+      ...(entity.remarks !== undefined ? { remarks: entity.remarks } : {}),
+      ...(entity.createdBy ? { createdBy: entity.createdBy } : {}),
+      ...(entity.createdAt ? { createdAt: entity.createdAt } : {}),
+    };
+  }
+
+  protected toDomain(row: TransmittalPersistence): TransmittalDomainEntitiy {
+    return new TransmittalDomainEntitiy(
       row.id,
       row.transmittalNumber,
       row.projectId,

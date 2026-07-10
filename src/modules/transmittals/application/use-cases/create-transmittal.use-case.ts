@@ -22,7 +22,6 @@ export class CreateTransmittalUseCase implements CreateTransmittalPort {
     private readonly emailMessagePublisher: EmailMessagePublisherPort,
   ) {}
 
-  // Private method to validate business rules
   async execute(input: CreateTransmittalInput): Promise<CreateTransmittalOutput> {
     // Validate business rules
     this.validateBusinessRules(input);
@@ -47,6 +46,7 @@ export class CreateTransmittalUseCase implements CreateTransmittalPort {
     };
   }
 
+  // Private method to validate business rules
   private validateBusinessRules(input: CreateTransmittalInput): void {
     const duplicateDocumentIds = this.findDuplicates(input.documentIds);
 

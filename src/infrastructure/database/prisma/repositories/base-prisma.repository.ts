@@ -26,10 +26,6 @@ export abstract class BasePrismaRepository<TDomain extends { id: string }, TPers
     return this.prisma[this.modelName];
   }
 
-  protected abstract toDomain(row: TPersistence): TDomain;
-
-  protected abstract toPersistence(entity: Partial<TDomain>): Record<string, unknown>;
-
   async findAll(): Promise<TDomain[]> {
     const rows = await this.model.findMany({
       where: this.withSoftDeleteFilter({}),
@@ -122,6 +118,8 @@ export abstract class BasePrismaRepository<TDomain extends { id: string }, TPers
     return !!row;
   }
 
+  // These methods should be implement on the specific module which is used by
+
   protected async existsByWhere(where: Record<string, unknown>): Promise<boolean> {
     const row = await this.model.findFirst({
       where: this.withSoftDeleteFilter(where),
@@ -206,6 +204,10 @@ export abstract class BasePrismaRepository<TDomain extends { id: string }, TPers
       where: this.withSoftDeleteFilter(where),
     });
   }
+
+  protected abstract toDomain(row: TPersistence): TDomain;
+
+  protected abstract toPersistence(entity: Partial<TDomain>): Record<string, unknown>;
 
   private withSoftDeleteFilter(where: Record<string, unknown>): Record<string, unknown> {
     if (!this.options.hasSoftDelete) {
