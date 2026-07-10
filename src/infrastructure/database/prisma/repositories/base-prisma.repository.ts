@@ -1,3 +1,4 @@
+import { BaseRepositoryPort } from 'src/common/ports/base-repository.port';
 import { PrismaService } from '../prisma.service';
 
 export type PaginationResult<T> = {
@@ -12,7 +13,9 @@ export type BasePrismaRepositoryOptions = {
   hasSoftDelete?: boolean;
 };
 
-export abstract class BasePrismaRepository<TPersistence> {
+export abstract class BasePrismaRepository<TDomain extends { id: string }, TPersistence>
+  implements BaseRepositoryPort<TDomain>
+{
   constructor(
     protected readonly prisma: PrismaService,
     private readonly modelName: string,
@@ -23,11 +26,19 @@ export abstract class BasePrismaRepository<TPersistence> {
     return this.prisma[this.modelName];
   }
 
-  protected async createRow(data: Record<string, unknown>): Promise<TPersistence> {
-    return this.model.create({ data });
+  protected abstract toDomain(row: TPersistence): TDomain;
+
+  protected abstract toPersistence(entity: Partial<TDomain>): Record<string, unknown>;
+
+  async findAll(): Promise<TDomain[]> {
+    const rows = await this.model.findMany({
+      where: this.withSoftDeleteFilter({}),
+    });
+
+    return rows.map((row: TPersistence) => this.toDomain(row));
   }
 
-  protected async findByIdRow(id: string): Promise<TPersistence | null> {
+  async findById(id: string): Promise<TDomain | null> {
     if (this.options.hasSoftDelete) {
       return this.model.findFirst({
         where: {
@@ -42,48 +53,37 @@ export abstract class BasePrismaRepository<TPersistence> {
     });
   }
 
-  protected async findFirstRow(
-    where: Record<string, unknown>,
-    args?: {
-      select?: Record<string, unknown>;
-      include?: Record<string, unknown>;
-    },
-  ): Promise<TPersistence | null> {
-    return this.model.findFirst({
-      where: this.withSoftDeleteFilter(where),
-      ...args,
+  async create(data: TDomain): Promise<TDomain> {
+    const row = await this.model.create({
+      data: this.toPersistence(data),
     });
+
+    return this.toDomain(row);
   }
 
-  protected async findManyRows(args?: {
-    where?: Record<string, unknown>;
-    orderBy?: Record<string, unknown> | Record<string, unknown>[];
-    skip?: number;
-    take?: number;
-    select?: Record<string, unknown>;
-    include?: Record<string, unknown>;
-  }): Promise<TPersistence[]> {
-    return this.model.findMany({
-      ...args,
-      where: this.withSoftDeleteFilter(args?.where ?? {}),
+  async save(data: TDomain): Promise<TDomain> {
+    const row = await this.model.update({
+      where: { id: data.id },
+      data: this.toPersistence(data),
     });
+
+    return this.toDomain(row);
   }
 
-  protected async updateRow(
-    id: string,
-    data: Record<string, unknown>,
-  ): Promise<TPersistence | null> {
+  async update(id: string, data: Partial<TDomain>): Promise<TDomain | null> {
     try {
-      return await this.model.update({
+      const row = await this.model.update({
         where: { id },
-        data,
+        data: this.toPersistence(data),
       });
+
+      return this.toDomain(row);
     } catch (error) {
       return null;
     }
   }
 
-  protected async deleteRow(id: string): Promise<boolean> {
+  async delete(id: string): Promise<boolean> {
     try {
       await this.model.delete({
         where: { id },
@@ -95,11 +95,12 @@ export abstract class BasePrismaRepository<TPersistence> {
     }
   }
 
-  protected async softDeleteRow(id: string): Promise<boolean> {
+  async softDelete(id: string): Promise<boolean> {
     try {
       await this.model.update({
         where: { id },
         data: {
+          isDeleted: true,
           deletedAt: new Date(),
         },
       });
@@ -110,13 +111,18 @@ export abstract class BasePrismaRepository<TPersistence> {
     }
   }
 
-  protected async countRows(where: Record<string, unknown> = {}): Promise<number> {
-    return this.model.count({
-      where: this.withSoftDeleteFilter(where),
+  async exists(id: string): Promise<boolean> {
+    const row = await this.model.findFirst({
+      where: this.withSoftDeleteFilter({ id }),
+      select: {
+        id: true,
+      },
     });
+
+    return !!row;
   }
 
-  protected async existsRow(where: Record<string, unknown>): Promise<boolean> {
+  protected async existsByWhere(where: Record<string, unknown>): Promise<boolean> {
     const row = await this.model.findFirst({
       where: this.withSoftDeleteFilter(where),
       select: {
@@ -127,6 +133,37 @@ export abstract class BasePrismaRepository<TPersistence> {
     return !!row;
   }
 
+  protected async findFirstByWhere(
+    where: Record<string, unknown>,
+    args?: {
+      select?: Record<string, unknown>;
+      include?: Record<string, unknown>;
+    },
+  ): Promise<TDomain | null> {
+    const row = await this.model.findFirst({
+      where: this.withSoftDeleteFilter(where),
+      ...args,
+    });
+
+    return row ? this.toDomain(row) : null;
+  }
+
+  protected async findManyByWhere(args?: {
+    where?: Record<string, unknown>;
+    orderBy?: Record<string, unknown> | Record<string, unknown>[];
+    skip?: number;
+    take?: number;
+    select?: Record<string, unknown>;
+    include?: Record<string, unknown>;
+  }): Promise<TDomain[]> {
+    const rows = await this.model.findMany({
+      ...args,
+      where: this.withSoftDeleteFilter(args?.where ?? {}),
+    });
+
+    return rows.map((row: TPersistence) => this.toDomain(row));
+  }
+
   protected async findWithPagination(args: {
     page?: number;
     limit?: number;
@@ -134,14 +171,14 @@ export abstract class BasePrismaRepository<TPersistence> {
     orderBy?: Record<string, unknown> | Record<string, unknown>[];
     include?: Record<string, unknown>;
     select?: Record<string, unknown>;
-  }): Promise<PaginationResult<TPersistence>> {
+  }): Promise<PaginationResult<TDomain>> {
     const page = args.page && args.page > 0 ? args.page : 1;
     const limit = args.limit && args.limit > 0 ? args.limit : 10;
     const skip = (page - 1) * limit;
 
     const where = this.withSoftDeleteFilter(args.where ?? {});
 
-    const [data, total] = await this.prisma.$transaction([
+    const [rows, total] = await this.prisma.$transaction([
       this.model.findMany({
         where,
         orderBy: args.orderBy,
@@ -156,12 +193,18 @@ export abstract class BasePrismaRepository<TPersistence> {
     ]);
 
     return {
-      data,
+      data: rows.map((row: TPersistence) => this.toDomain(row)),
       total,
       page,
       limit,
       totalPages: Math.ceil(total / limit),
     };
+  }
+
+  protected async countRows(where: Record<string, unknown> = {}): Promise<number> {
+    return this.model.count({
+      where: this.withSoftDeleteFilter(where),
+    });
   }
 
   private withSoftDeleteFilter(where: Record<string, unknown>): Record<string, unknown> {
