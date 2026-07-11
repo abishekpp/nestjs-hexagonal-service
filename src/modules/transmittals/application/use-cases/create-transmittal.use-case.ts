@@ -1,14 +1,14 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { Transmittal } from '../../domain/entities/transmittal.entity';
-import { TRANSMITTAL_REPOSITORY_PORT } from '../../ports/out/transmittal.repository.port';
-import type { TransmittalRepositoryPort } from '../../ports/out/transmittal.repository.port';
+import { Transmittal } from '@modules/transmittals/domain/entities/transmittal.entity';
+import { TRANSMITTAL_REPOSITORY_PORT } from '@modules/transmittals/ports/out/transmittal.repository.port';
+import type { TransmittalRepositoryPort } from '@modules/transmittals/ports/out/transmittal.repository.port';
 import { CreateTransmittalInput } from '../dto/inputs/create-transmittal.input';
 import { CreateTransmittalOutput } from '../dto/outputs/create-transmittal.output';
-import { ApplicationException } from 'src/common/exceptions/application.exception';
-import { ExceptionType } from 'src/shared/enums/exception-type.enum';
-import { CreateTransmittalPort } from '../../ports/in/create-transmittal.port';
-import { EMAIL_MESSAGE_PUBLISHER_PORT } from 'src/infrastructure/messaging/ports/email-message-publisher.port';
-import type { EmailMessagePublisherPort } from 'src/infrastructure/messaging/ports/email-message-publisher.port';
+import { ApplicationException } from '@common/exceptions/application.exception';
+import { ExceptionType } from '@shared/enums/exception-type.enum';
+import { CreateTransmittalPort } from '@modules/transmittals/ports/in/create-transmittal.port';
+import { EMAIL_MESSAGE_PUBLISHER_PORT } from '@infra/messaging/ports/email-message-publisher.port';
+import type { EmailMessagePublisherPort } from '@infra/messaging/ports/email-message-publisher.port';
 
 @Injectable()
 export class CreateTransmittalUseCase implements CreateTransmittalPort {

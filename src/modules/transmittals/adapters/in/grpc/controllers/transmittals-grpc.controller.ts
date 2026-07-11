@@ -1,7 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { GrpcMethod, Payload } from '@nestjs/microservices';
-import { CreateTransmittalUseCase } from '../../../../application/use-cases/create-transmittal.use-case';
-import { GetTransmittalByIdUseCase } from '../../../../application/use-cases/get-transmittal-by-id.use-case';
+import { CreateTransmittalUseCase } from '@modules/transmittals/application/use-cases/create-transmittal.use-case';
+import { GetTransmittalByIdUseCase } from '@modules/transmittals/application/use-cases/get-transmittal-by-id.use-case';
 import { CreateTransmittalGrpcRequestDto } from '../dto/create-transmittal-grpc.request';
 import { GetTransmittalByIdGrpcRequestDto } from '../dto/get-transmittal-by-id-grpc.request';
 

@@ -1,9 +1,9 @@
 import { Controller } from '@nestjs/common';
 import { GrpcMethod, Payload } from '@nestjs/microservices';
-import { CreateWorkflowUseCase } from '../../../../application/use-cases/create-workflow.use-case';
-import { ListWorkflowsUseCase } from '../../../../application/use-cases/list-workflows.use-case';
-import { UpdateWorkflowStatusUseCase } from '../../../../application/use-cases/update-workflow-status.use-case';
-import { WorkflowOutput } from '../../../../application/dto/outputs/workflow.output';
+import { CreateWorkflowUseCase } from '@modules/workflows/application/use-cases/create-workflow.use-case';
+import { ListWorkflowsUseCase } from '@modules/workflows/application/use-cases/list-workflows.use-case';
+import { UpdateWorkflowStatusUseCase } from '@modules/workflows/application/use-cases/update-workflow-status.use-case';
+import { WorkflowOutput } from '@modules/workflows/application/dto/outputs/workflow.output';
 import { CreateWorkflowGrpcRequestDto } from '../dto/create-workflow-grpc.request';
 import { UpdateWorkflowStatusGrpcRequestDto } from '../dto/update-workflow-status-grpc.request';
 

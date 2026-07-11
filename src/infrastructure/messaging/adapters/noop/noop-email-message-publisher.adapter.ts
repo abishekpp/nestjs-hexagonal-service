@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   EmailMessagePublisherPort,
   KafkaEmailBody,
-} from '../../ports/email-message-publisher.port';
+} from '@infra/messaging/ports/email-message-publisher.port';
 
 @Injectable()
 export class NoopEmailMessagePublisherAdapter implements EmailMessagePublisherPort {

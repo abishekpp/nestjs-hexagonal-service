@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../../../infrastructure/database/prisma/prisma.service';
-import { Workflow, WorkflowStatus } from '../../../../domain/entities/workflow.entity';
-import { WorkflowRepositoryPort } from '../../../../ports/out/workflow.repository.port';
+import { PrismaService } from '@infra/database/prisma/prisma.service';
+import { Workflow, WorkflowStatus } from '@modules/workflows/domain/entities/workflow.entity';
+import { WorkflowRepositoryPort } from '@modules/workflows/ports/out/workflow.repository.port';
 
 @Injectable()
 export class PrismaWorkflowRepositoryAdapter implements WorkflowRepositoryPort {

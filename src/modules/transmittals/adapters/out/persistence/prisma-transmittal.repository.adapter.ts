@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../../infrastructure/database/prisma/prisma.service';
+import { PrismaService } from '@infra/database/prisma/prisma.service';
 import {
   Transmittal as TransmittalDomainEntitiy,
   TransmittalStatus,
-} from '../../../domain/entities/transmittal.entity';
-import { TransmittalRepositoryPort } from '../../../ports/out/transmittal.repository.port';
-import { BasePrismaRepository } from 'src/infrastructure/database/prisma/repositories/base-prisma.repository';
+} from '@modules/transmittals/domain/entities/transmittal.entity';
+import { TransmittalRepositoryPort } from '@modules/transmittals/ports/out/transmittal.repository.port';
+import { BasePrismaRepository } from '@infra/database/prisma/repositories/base-prisma.repository';
 import { Transmittal as TransmittalPersistence } from 'generated/prisma/client';
 
 @Injectable()

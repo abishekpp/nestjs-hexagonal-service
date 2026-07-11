@@ -1,4 +1,4 @@
-import { BaseRepositoryPort } from 'src/common/ports/base-repository.port';
+import { BaseRepositoryPort } from '@common/ports/base-repository.port';
 import { PrismaService } from '../prisma.service';
 
 export type PaginationResult<T> = {

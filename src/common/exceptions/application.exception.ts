@@ -1,4 +1,4 @@
-import { ExceptionType } from 'src/shared/enums/exception-type.enum';
+import { ExceptionType } from '@shared/enums/exception-type.enum';
 
 export class ApplicationException extends Error {
   constructor(

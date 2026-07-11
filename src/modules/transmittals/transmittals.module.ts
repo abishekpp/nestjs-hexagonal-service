@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TransmittalsGrpcController } from './adapters/in/grpc/controllers/transmittals-grpc.controller';
-import { PrismaModule } from 'src/infrastructure/database/prisma/prisma.module';
+import { PrismaModule } from '@infra/database/prisma/prisma.module';
 import { CreateTransmittalUseCase } from './application/use-cases/create-transmittal.use-case';
 import { GetTransmittalByIdUseCase } from './application/use-cases/get-transmittal-by-id.use-case';
 import { TRANSMITTAL_REPOSITORY_PORT } from './ports/out/transmittal.repository.port';

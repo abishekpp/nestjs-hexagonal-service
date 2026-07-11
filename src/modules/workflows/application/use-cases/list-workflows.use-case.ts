@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   WORKFLOW_REPOSITORY_PORT,
   type WorkflowRepositoryPort,
-} from '../../ports/out/workflow.repository.port';
+} from '@modules/workflows/ports/out/workflow.repository.port';
 import { WorkflowOutput } from '../dto/outputs/workflow.output';
 import { toWorkflowOutput } from './workflow-output.mapper';
 

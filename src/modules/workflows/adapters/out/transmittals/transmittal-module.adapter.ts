@@ -2,10 +2,10 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   CREATE_TRANSMITTAL_PORT,
   type CreateTransmittalPort,
-} from 'src/modules/transmittals/ports/in/create-transmittal.port';
-import { CreateWorkflowTransmittalInput } from '../../../application/dto/inputs/create-workflow-transmittal.input';
-import { WorkflowTransmittalOutput } from '../../../application/dto/outputs/workflow-transmittal.output';
-import { WorkflowTransmittalPort } from '../../../ports/out/workflow-transmittal.port';
+} from '@modules/transmittals/ports/in/create-transmittal.port';
+import { CreateWorkflowTransmittalInput } from '@modules/workflows/application/dto/inputs/create-workflow-transmittal.input';
+import { WorkflowTransmittalOutput } from '@modules/workflows/application/dto/outputs/workflow-transmittal.output';
+import { WorkflowTransmittalPort } from '@modules/workflows/ports/out/workflow-transmittal.port';
 
 @Injectable()
 export class TransmittalModuleAdapter implements WorkflowTransmittalPort {

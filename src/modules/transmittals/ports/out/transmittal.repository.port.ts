@@ -1,5 +1,5 @@
-import { BaseRepositoryPort } from 'src/common/ports/base-repository.port';
-import { Transmittal as TransmittalDomainEntitiy } from '../../domain/entities/transmittal.entity';
+import { BaseRepositoryPort } from '@common/ports/base-repository.port';
+import { Transmittal as TransmittalDomainEntitiy } from '@modules/transmittals/domain/entities/transmittal.entity';
 
 export const TRANSMITTAL_REPOSITORY_PORT = Symbol('TRANSMITTAL_REPOSITORY_PORT');
 

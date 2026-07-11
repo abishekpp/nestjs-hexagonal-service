@@ -1,4 +1,4 @@
-import { Workflow } from '../../domain/entities/workflow.entity';
+import { Workflow } from '@modules/workflows/domain/entities/workflow.entity';
 
 export const WORKFLOW_REPOSITORY_PORT = Symbol('WORKFLOW_REPOSITORY_PORT');
 

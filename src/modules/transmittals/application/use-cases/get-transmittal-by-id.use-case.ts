@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { TRANSMITTAL_REPOSITORY_PORT } from '../../ports/out/transmittal.repository.port';
-import type { TransmittalRepositoryPort } from '../../ports/out/transmittal.repository.port';
+import { TRANSMITTAL_REPOSITORY_PORT } from '@modules/transmittals/ports/out/transmittal.repository.port';
+import type { TransmittalRepositoryPort } from '@modules/transmittals/ports/out/transmittal.repository.port';
 import { TransmittalOutput } from '../dto/outputs/transmittal.output';
 
 @Injectable()

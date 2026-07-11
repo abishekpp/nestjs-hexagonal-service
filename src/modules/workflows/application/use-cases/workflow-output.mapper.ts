@@ -1,4 +1,4 @@
-import { Workflow } from '../../domain/entities/workflow.entity';
+import { Workflow } from '@modules/workflows/domain/entities/workflow.entity';
 import { WorkflowOutput } from '../dto/outputs/workflow.output';
 
 export function toWorkflowOutput(workflow: Workflow): WorkflowOutput {

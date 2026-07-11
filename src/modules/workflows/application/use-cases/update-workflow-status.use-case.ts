@@ -1,14 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { ApplicationException } from 'src/common/exceptions/application.exception';
-import { ExceptionType } from 'src/shared/enums/exception-type.enum';
+import { ApplicationException } from '@common/exceptions/application.exception';
+import { ExceptionType } from '@shared/enums/exception-type.enum';
 import {
   WORKFLOW_REPOSITORY_PORT,
   type WorkflowRepositoryPort,
-} from '../../ports/out/workflow.repository.port';
+} from '@modules/workflows/ports/out/workflow.repository.port';
 import {
   WORKFLOW_TRANSMITTAL_PORT,
   type WorkflowTransmittalPort,
-} from '../../ports/out/workflow-transmittal.port';
+} from '@modules/workflows/ports/out/workflow-transmittal.port';
 import { UpdateWorkflowStatusInput } from '../dto/inputs/update-workflow-status.input';
 import { WorkflowOutput } from '../dto/outputs/workflow.output';
 import { toWorkflowOutput } from './workflow-output.mapper';

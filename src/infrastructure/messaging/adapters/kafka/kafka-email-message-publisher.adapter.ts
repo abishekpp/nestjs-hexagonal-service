@@ -5,8 +5,8 @@ import { firstValueFrom } from 'rxjs';
 import {
   EmailMessagePublisherPort,
   KafkaEmailBody,
-} from '../../ports/email-message-publisher.port';
-import { EMAIL_KAFKA_CLIENT } from '../../messaging.tokens';
+} from '@infra/messaging/ports/email-message-publisher.port';
+import { EMAIL_KAFKA_CLIENT } from '@infra/messaging/messaging.tokens';
 
 @Injectable()
 export class KafkaEmailMessagePublisherAdapter

@@ -4,7 +4,7 @@ import { EMAIL_KAFKA_CLIENT } from './messaging.tokens';
 import { EmailMessagePublisherProvider } from './providers/email-message-publisher.provider';
 import { EMAIL_MESSAGE_PUBLISHER_PORT } from './ports/email-message-publisher.port';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { getKafkaClientConfig } from 'src/config/kafka/kafka.config';
+import { getKafkaClientConfig } from '@config/kafka/kafka.config';
 
 @Global()
 @Module({

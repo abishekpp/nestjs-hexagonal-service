@@ -80,6 +80,12 @@
       "ts"
     ],
     "moduleNameMapper": {
+      "^@common/(.*)$": "<rootDir>/common/$1",
+      "^@config/(.*)$": "<rootDir>/config/$1",
+      "^@infra/(.*)$": "<rootDir>/infrastructure/$1",
+      "^@modules/(.*)$": "<rootDir>/modules/$1",
+      "^@shared/(.*)$": "<rootDir>/shared/$1",
+      "^generated/(.*)$": "<rootDir>/../generated/$1",
       "^src/(.*)$": "<rootDir>/$1"
     },
     "rootDir": "src",

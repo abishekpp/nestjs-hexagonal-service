@@ -1,7 +1,7 @@
-import { ApplicationException } from 'src/common/exceptions/application.exception';
-import { Workflow } from '../../domain/entities/workflow.entity';
-import { WorkflowRepositoryPort } from '../../ports/out/workflow.repository.port';
-import { WorkflowTransmittalPort } from '../../ports/out/workflow-transmittal.port';
+import { ApplicationException } from '@common/exceptions/application.exception';
+import { Workflow } from '@modules/workflows/domain/entities/workflow.entity';
+import { WorkflowRepositoryPort } from '@modules/workflows/ports/out/workflow.repository.port';
+import { WorkflowTransmittalPort } from '@modules/workflows/ports/out/workflow-transmittal.port';
 import { UpdateWorkflowStatusUseCase } from './update-workflow-status.use-case';
 
 describe('UpdateWorkflowStatusUseCase', () => {
