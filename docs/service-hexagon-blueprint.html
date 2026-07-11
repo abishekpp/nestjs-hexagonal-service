@@ -1,0 +1,2103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Service Hexagon Blueprint</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.55;
+      max-width: 1100px;
+      margin: 40px auto;
+      padding: 0 24px;
+      color: #1f2937;
+    }
+    h1, h2, h3, h4 {
+      color: #111827;
+      margin-top: 1.5em;
+    }
+    h1 {
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 0.35em;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 16px 0;
+    }
+    th, td {
+      border: 1px solid #d1d5db;
+      padding: 8px 10px;
+      vertical-align: top;
+    }
+    th {
+      background: #f3f4f6;
+      font-weight: 700;
+    }
+    pre {
+      background: #111827;
+      color: #f9fafb;
+      padding: 14px;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+    code {
+      font-family: Consolas, Monaco, 'Courier New', monospace;
+    }
+    p code, td code {
+      background: #f3f4f6;
+      color: #111827;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    hr {
+      border: 0;
+      border-top: 1px solid #e5e7eb;
+      margin: 28px 0;
+    }
+    .mermaid {
+      background: #ffffff;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 16px 0;
+      overflow-x: auto;
+    }
+    figure {
+      margin: 22px 0;
+    }
+    figcaption {
+      color: #4b5563;
+      font-size: 0.95rem;
+      margin-top: 8px;
+      text-align: center;
+    }
+    img {
+      box-sizing: border-box;
+      display: block;
+      height: auto;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+<h1 id="service-hexagon-blueprint">Service Hexagon Blueprint</h1>
+<p>NestJS microservice reference for service-owned business rules, ports, adapters, and infrastructure boundaries.</p>
+
+<h2 id="1-document-control">1. Document Control</h2>
+
+<table>
+<thead><tr><th>Field</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td>Title</td><td>Service Hexagon Blueprint</td></tr>
+<tr><td>Descriptive Subtitle</td><td>NestJS Microservice Hexagonal Architecture Reference</td></tr>
+<tr><td>Project</td><td>`nestjs-hexagonal-service`</td></tr>
+<tr><td>POC Name</td><td>Service Hexagon Blueprint</td></tr>
+<tr><td>Version</td><td>1.0</td></tr>
+<tr><td>Status</td><td>Draft / Reference</td></tr>
+<tr><td>Owner</td><td>`&lt;Architecture Owner / Technical Lead&gt;`</td></tr>
+<tr><td>Review Cycle</td><td>Quarterly, or before major architectural changes</td></tr>
+<tr><td>Last Updated</td><td>`&lt;YYYY-MM-DD&gt;`</td></tr>
+<tr><td>Intended Audience</td><td>Backend developers, NestJS engineers, technical leads, solution architects, QA engineers, DevOps engineers, reviewers, maintainers</td></tr>
+<tr><td>Related Repositories / Documents</td><td>`nestjs-hexagonal-service`, service SRS/BRD where applicable, API contracts, gRPC proto files, ADRs, operational runbooks</td></tr>
+</tbody></table>
+
+<h3 id="change-history">Change History</h3>
+
+<table>
+<thead><tr><th>Version</th><th>Date</th><th>Author</th><th>Summary</th><th>Review Status</th></tr></thead>
+<tbody>
+<tr><td>0.1</td><td>`&lt;YYYY-MM-DD&gt;`</td><td>`&lt;Author&gt;`</td><td>Initial draft</td><td>Pending review</td></tr>
+<tr><td>1.0</td><td>`&lt;YYYY-MM-DD&gt;`</td><td>`&lt;Author&gt;`</td><td>Baseline architecture reference</td><td>Pending approval</td></tr>
+</tbody></table>
+
+<hr>
+
+<h2 id="2-executive-summary">2. Executive Summary</h2>
+
+<p>This document explains the architecture of a sample NestJS service named <code>nestjs-hexagonal-service</code>. The POC/reference name for this architecture guide is <strong>Service Hexagon Blueprint</strong>. The project demonstrates <strong>Hexagonal Architecture</strong>, also known as <strong>Ports and Adapters Architecture</strong>, in a practical NestJS microservice-style codebase.</p>
+
+<p>The service contains example modules such as:</p>
+
+<pre><code class="language-txt">
+src/modules/transmittals
+src/modules/workflows
+src/infrastructure/database/prisma
+src/infrastructure/messaging
+src/common
+src/config
+src/shared
+</code></pre>
+
+<p>The purpose of the project is to show how a NestJS service can organize business rules, use cases, ports, adapters, and infrastructure-specific code without tightly coupling the business logic to any one technical mechanism. Infrastructure includes framework/runtime, transport, persistence, messaging, cache, file or object storage, search indexes, external APIs, remote microservice clients, observability, configuration, secrets, schedulers, queues, and other technical details outside the application core. Prisma, Kafka, Redis, gRPC, and NestJS controllers are examples, not the full boundary.</p>
+
+<p>This project is a <strong>sample, starter, boilerplate, and proof of concept</strong>. It is not intended to be copied blindly into production. Future teams may reuse the architecture idea, dependency direction, folder structure, and implementation patterns after project-specific cleanup, review, testing, security hardening, and refactoring.</p>
+
+<p>The architecture was chosen to support:</p>
+
+<table>
+<thead><tr><th>Objective</th><th>Explanation</th></tr></thead>
+<tbody>
+<tr><td>Maintainability</td><td>Business logic remains separated from framework, transport, persistence, messaging, cache, external API, and other infrastructure code.</td></tr>
+<tr><td>Testability</td><td>Use cases can be tested with mocked ports without real infrastructure such as a database, broker, cache server, remote service, or transport server.</td></tr>
+<tr><td>Replaceability</td><td>Infrastructure technologies such as Prisma, Kafka, Redis, gRPC, object storage, search, or external APIs can be replaced through adapters.</td></tr>
+<tr><td>Explicit boundaries</td><td>Each module owns its domain rules, use cases, ports, and adapters.</td></tr>
+<tr><td>Auditability</td><td>The architecture creates traceable paths from requirement to use case to port to adapter to test.</td></tr>
+</tbody></table>
+
+<p>This document should be used as a developer guide, architecture reference, onboarding material, and review checklist. It is ISO-friendly in structure and documentation discipline, but it does <strong>not</strong> claim ISO certification, ISO conformance, or audit approval.</p>
+
+<hr>
+
+<h2 id="3-goals-and-non-goals">3. Goals And Non-Goals</h2>
+
+<h3 id="3-1-goals">3.1 Goals</h3>
+
+<table>
+<thead><tr><th>Goal</th><th>Description</th></tr></thead>
+<tbody>
+<tr><td>Maintainability</td><td>Keep business logic understandable and isolated from technical details.</td></tr>
+<tr><td>Testability</td><td>Allow domain and use case tests without infrastructure dependencies.</td></tr>
+<tr><td>Infrastructure independence</td><td>Avoid placing business rules directly inside framework/runtime, transport, persistence, messaging, cache, external API, or remote-service client code.</td></tr>
+<tr><td>Persistence independence</td><td>Use repository ports so use cases do not depend directly on a specific database, ORM, or query client such as Prisma.</td></tr>
+<tr><td>Integration independence</td><td>Use outbound ports so use cases do not depend directly on brokers, cache clients, file storage clients, search clients, external API clients, or raw gRPC clients.</td></tr>
+<tr><td>Clear business boundaries</td><td>Each module should express its own domain, use cases, inbound ports, and outbound ports.</td></tr>
+<tr><td>Production starter</td><td>Provide a starting structure that can be hardened for production.</td></tr>
+<tr><td>Developer onboarding</td><td>Help developers familiar with default NestJS folder structures understand hexagonal layering.</td></tr>
+<tr><td>Audit-friendly documentation</td><td>Support traceability, reviewability, and maintainability.</td></tr>
+</tbody></table>
+
+<h3 id="3-2-non-goals">3.2 Non-Goals</h3>
+
+<p>This project is not intended to be:</p>
+
+<table>
+<thead><tr><th>Non-Goal</th><th>Explanation</th></tr></thead>
+<tbody>
+<tr><td>A complete enterprise platform</td><td>It demonstrates patterns, not a full EDMS implementation.</td></tr>
+<tr><td>A universal shared business module library</td><td>Shared modules should not become dumping grounds for business logic.</td></tr>
+<tr><td>A final production design</td><td>Production use requires review, cleanup, security hardening, observability, scaling, and test coverage.</td></tr>
+<tr><td>A replacement for requirement analysis</td><td>Business-specific rules must still be discovered, validated, and documented.</td></tr>
+<tr><td>A gateway architecture guide</td><td>The focus is service/microservice architecture. A gateway may route or enrich requests, but it should not own service business rules.</td></tr>
+<tr><td>The only correct architecture</td><td>Hexagonal Architecture is one appropriate approach for complex business services, not the only possible design.</td></tr>
+</tbody></table>
+
+<hr>
+
+<h2 id="4-prerequisites-for-developers">4. Prerequisites For Developers</h2>
+
+<p>Developers using this architecture should understand the following concepts.</p>
+
+<h3 id="4-1-nestjs-modules-providers-and-dependency-injection">4.1 NestJS Modules, Providers, And Dependency Injection</h3>
+
+<p>NestJS uses modules and providers to register dependencies.</p>
+
+<pre><code class="language-ts">
+@Module({
+  providers: [
+    CreateTransmittalUseCase,
+    {
+      provide: TRANSMITTAL_REPOSITORY_PORT,
+      useClass: PrismaTransmittalRepositoryAdapter,
+    },
+  ],
+})
+export class TransmittalsModule {}
+</code></pre>
+
+<p>The use case depends on a token/interface, while Nest injects the concrete adapter at runtime.</p>
+
+<h3 id="4-2-typescript-interfaces-types-and-classes">4.2 TypeScript Interfaces, Types, And Classes</h3>
+
+<p>Ports are usually TypeScript interfaces.</p>
+
+<pre><code class="language-ts">
+export interface TransmittalRepositoryPort {
+  findById(id: string): Promise&lt;Transmittal | null&gt;;
+}
+</code></pre>
+
+<p>Classes implement those interfaces.</p>
+
+<pre><code class="language-ts">
+export class PrismaTransmittalRepositoryAdapter
+  implements TransmittalRepositoryPort {
+  // implementation
+}
+</code></pre>
+
+<h3 id="4-3-basic-oop">4.3 Basic OOP</h3>
+
+<table>
+<thead><tr><th>Concept</th><th>Usage In This Architecture</th></tr></thead>
+<tbody>
+<tr><td>Class</td><td>Domain entities, use cases, adapters</td></tr>
+<tr><td>Interface</td><td>Ports</td></tr>
+<tr><td>Encapsulation</td><td>Domain rules stay inside domain/application layers</td></tr>
+<tr><td>Composition</td><td>Modules compose providers and adapters</td></tr>
+<tr><td>Inheritance</td><td>Optional base classes such as `BasePrismaRepository`</td></tr>
+</tbody></table>
+
+<h3 id="4-4-solid-principles">4.4 SOLID Principles</h3>
+
+<p>The most important SOLID principle here is <strong>Dependency Inversion</strong>.</p>
+
+<p>High-level business logic should not depend on low-level technical details.</p>
+
+<p>Bad:</p>
+
+<pre><code class="language-ts">
+export class CreateTransmittalUseCase {
+  constructor(private readonly prisma: PrismaService) {}
+}
+</code></pre>
+
+<p>Good:</p>
+
+<pre><code class="language-ts">
+export class CreateTransmittalUseCase {
+  constructor(
+    @Inject(TRANSMITTAL_REPOSITORY_PORT)
+    private readonly repository: TransmittalRepositoryPort,
+  ) {}
+}
+</code></pre>
+
+<h3 id="4-5-dtos-vs-domain-entities">4.5 DTOs Vs Domain Entities</h3>
+
+<p>DTOs are used to carry data across boundaries. Domain entities contain business state and business rules.</p>
+
+<p>Bad:</p>
+
+<pre><code class="language-ts">
+const transmittal = createTransmittalDto;
+</code></pre>
+
+<p>Good:</p>
+
+<pre><code class="language-ts">
+const transmittal = Transmittal.create({
+  projectId: input.projectId,
+  subject: input.subject,
+  documentIds: input.documentIds,
+});
+</code></pre>
+
+<h3 id="4-6-persistence-mapping">4.6 Persistence Mapping</h3>
+
+<p>Prisma models are persistence structures. Domain entities are business structures.</p>
+
+<pre><code class="language-txt">
+Prisma Row → Domain Entity
+Domain Entity → Prisma Data
+</code></pre>
+
+<h3 id="4-7-testing-basics">4.7 Testing Basics</h3>
+
+<table>
+<thead><tr><th>Test Type</th><th>Example</th></tr></thead>
+<tbody>
+<tr><td>Unit test</td><td>Test `Transmittal.create()` without NestJS</td></tr>
+<tr><td>Use case test</td><td>Test `CreateTransmittalUseCase` with mocked ports</td></tr>
+<tr><td>Adapter test</td><td>Test Prisma adapter with test database</td></tr>
+<tr><td>Contract test</td><td>Test gRPC request/response expectations</td></tr>
+<tr><td>E2E test</td><td>Test service runtime behavior through gRPC</td></tr>
+</tbody></table>
+
+<h3 id="4-8-common-mistakes-from-default-nestjs-structure">4.8 Common Mistakes From Default NestJS Structure</h3>
+
+<p>Default NestJS structure often becomes:</p>
+
+<pre><code class="language-txt">
+controller → service → repository → database
+</code></pre>
+
+<p>This can work for simple CRUD applications, but in complex systems it may cause the service to know Prisma, Kafka, Redis, HTTP exceptions, and external APIs. Hexagonal Architecture separates those responsibilities.</p>
+
+<hr>
+
+<h2 id="5-core-philosophy">5. Core Philosophy</h2>
+
+<p>The core philosophy is:</p>
+
+<pre><code class="language-txt">
+Business logic should be stable.
+Technology should be replaceable.
+</code></pre>
+
+<p>The service is divided into two major areas.</p>
+
+<pre><code class="language-txt">
+Inside the hexagon:
+  Domain
+  Use cases
+  Ports
+
+Outside the hexagon:
+  gRPC controllers
+  Prisma repositories
+  Kafka publishers
+  Redis caches
+  remote service clients
+  file/object storage clients
+  search index clients
+  external APIs
+  observability/logging integrations
+  configuration and secrets integrations
+  framework-specific code
+</code></pre>
+
+<h3 id="5-1-hexagon-application-core">5.1 Hexagon / Application Core</h3>
+
+<p>The application core contains business rules and use case orchestration.</p>
+
+<p>Examples:</p>
+
+<pre><code class="language-txt">
+src/modules/transmittals/domain
+src/modules/transmittals/application
+src/modules/transmittals/ports
+</code></pre>
+
+<p>The core should not know the implementation details of Prisma, Kafka, Redis, gRPC clients, file storage, search, external APIs, observability tools, or any other infrastructure technology.</p>
+
+<h3 id="5-2-ports">5.2 Ports</h3>
+
+<p>A port is an interface that defines a boundary.</p>
+
+<table>
+<thead><tr><th>Port Type</th><th>Meaning</th><th>Example</th></tr></thead>
+<tbody>
+<tr><td>Inbound port</td><td>What the application can do</td><td>`CreateTransmittalPort`</td></tr>
+<tr><td>Outbound port</td><td>What the application needs from outside</td><td>`TransmittalRepositoryPort`</td></tr>
+</tbody></table>
+
+<h3 id="5-3-adapters">5.3 Adapters</h3>
+
+<p>Adapters are technical implementations of ports.</p>
+
+<table>
+<thead><tr><th>Port</th><th>Adapter</th></tr></thead>
+<tbody>
+<tr><td>`TransmittalRepositoryPort`</td><td>`PrismaTransmittalRepositoryAdapter`</td></tr>
+<tr><td>`EmailMessagePublisherPort`</td><td>`KafkaEmailMessagePublisherAdapter`</td></tr>
+<tr><td>`EmailMessagePublisherPort`</td><td>`NoopEmailMessagePublisherAdapter`</td></tr>
+<tr><td>gRPC inbound contract</td><td>`TransmittalsGrpcController`</td></tr>
+</tbody></table>
+
+<h3 id="5-4-dependency-rule">5.4 Dependency Rule</h3>
+
+<pre><code class="language-txt">
+Outer layers may depend on inner layers.
+Inner layers must not depend on outer layers.
+</code></pre>
+
+<p>Good:</p>
+
+<pre><code class="language-txt">
+Prisma adapter imports domain entity.
+Use case imports repository port.
+Controller imports use case.
+</code></pre>
+
+<p>Bad:</p>
+
+<pre><code class="language-txt">
+Domain entity imports Prisma model.
+Use case imports Kafka client.
+Use case imports raw ClientGrpc.
+Gateway owns service business rule.
+</code></pre>
+
+<h3 id="5-5-infrastructure-as-detail">5.5 Infrastructure As Detail</h3>
+
+<p>Infrastructure is everything outside the application core that helps the service run, communicate, persist, cache, observe, or integrate.</p>
+
+<p>Examples include framework/runtime, transport, persistence, messaging, cache, external integrations, logging, metrics, tracing, secrets, and configuration.</p>
+
+<p>NestJS is important at runtime, but it should not dominate domain rules. Domain entities should not use <code>@Injectable()</code>, <code>@Controller()</code>, <code>@GrpcMethod()</code>, request validation decorators, Prisma models, Kafka clients, Redis clients, or remote-service clients.</p>
+
+<h3 id="5-6-persistence-messaging-cache-and-integrations-as-details">5.6 Persistence, Messaging, Cache, And Integrations As Details</h3>
+
+<p>The database is an implementation detail behind repository ports. Messaging is an implementation detail behind publisher/consumer ports. Cache is an implementation detail behind cache/query ports when cache is required. Remote service calls are implementation details behind outbound client ports.</p>
+
+<pre><code class="language-txt">
+Use case depends on a port.
+Adapter implements the port.
+Adapter owns technology-specific code.
+</code></pre>
+
+<h3 id="5-7-explicit-mapping-between-layers">5.7 Explicit Mapping Between Layers</h3>
+
+<p>Mapping is intentional.</p>
+
+<pre><code class="language-txt">
+gRPC request DTO → Use case input DTO
+Use case output DTO → gRPC response
+Prisma row → Domain entity
+Domain entity → Prisma persistence data
+Domain/application event → Kafka payload
+Cache entry → Application/domain-friendly shape
+Remote service response → Application output or domain-friendly shape
+</code></pre>
+
+<hr>
+
+<h2 id="6-architecture-overview">6. Architecture Overview</h2>
+
+<h3 id="6-1-high-level-diagram">6.1 High-Level Diagram</h3>
+
+<figure>
+  <img src="assets/service-hexagon-driving-driven.svg" alt="Service Hexagon Blueprint driving and driven sides" style="width:100%;max-width:1120px;border:1px solid #d1d5db;border-radius:8px;">
+  <figcaption>Service Hexagon Blueprint: driving adapters call inbound ports, while outbound ports are implemented by driven infrastructure adapters.</figcaption>
+</figure>
+
+<pre><code class="language-mermaid">
+flowchart LR
+    ExternalCaller[Gateway / External Client / Job / Event] --&gt; InAdapter[Inbound Adapter&lt;br/&gt;gRPC / HTTP / Event / Schedule]
+
+    subgraph Core[Service Hexagon Blueprint - Application Core]
+      InPort[Inbound Port]
+      UseCase[Use Case&lt;br/&gt;Application Layer]
+      Domain[Domain Entity / Business Rules]
+      RepoPort[Persistence Port]
+      MsgPort[Messaging Port]
+      CachePort[Cache Port]
+      RemotePort[Remote Service / External API Port]
+      InPort --&gt; UseCase
+      UseCase --&gt; Domain
+      UseCase --&gt; RepoPort
+      UseCase --&gt; MsgPort
+      UseCase --&gt; CachePort
+      UseCase --&gt; RemotePort
+    end
+
+    InAdapter --&gt; InPort
+    RepoPort --&gt; PersistenceAdapter[Persistence Adapter&lt;br/&gt;Prisma example]
+    MsgPort --&gt; MessageAdapter[Messaging Adapter&lt;br/&gt;Kafka / Noop example]
+    CachePort --&gt; CacheAdapter[Cache Adapter&lt;br/&gt;Redis example]
+    RemotePort --&gt; RemoteAdapter[Remote Client Adapter&lt;br/&gt;gRPC / HTTP example]
+
+    PersistenceAdapter --&gt; DB[(Database)]
+    MessageAdapter --&gt; Broker[(Message Broker)]
+    CacheAdapter --&gt; Cache[(Cache)]
+    RemoteAdapter --&gt; RemoteService[Remote Service / External API]
+</code></pre>
+
+<h3 id="6-2-request-flow-example-create-transmittal">6.2 Request Flow Example: Create Transmittal</h3>
+
+<pre><code class="language-txt">
+Gateway or external caller
+  → gRPC request
+  → TransmittalsGrpcController
+  → CreateTransmittalUseCase
+  → Transmittal domain entity
+  → TransmittalRepositoryPort
+  → PrismaTransmittalRepositoryAdapter
+  → PostgreSQL
+  → EmailMessagePublisherPort
+  → KafkaEmailMessagePublisherAdapter / NoopEmailMessagePublisherAdapter
+</code></pre>
+
+<pre><code class="language-mermaid">
+sequenceDiagram
+    participant Caller as Gateway / External Caller
+    participant Controller as TransmittalsGrpcController
+    participant UseCase as CreateTransmittalUseCase
+    participant Domain as Transmittal Entity
+    participant RepoPort as TransmittalRepositoryPort
+    participant RepoAdapter as Prisma Repository Adapter
+    participant MsgPort as EmailMessagePublisherPort
+    participant MsgAdapter as Kafka / Noop Messaging Adapter
+
+    Caller-&gt;&gt;Controller: gRPC CreateTransmittal request
+    Controller-&gt;&gt;UseCase: execute(input)
+    UseCase-&gt;&gt;Domain: create(input)
+    Domain--&gt;&gt;UseCase: Transmittal
+    UseCase-&gt;&gt;RepoPort: create(transmittal)
+    RepoPort-&gt;&gt;RepoAdapter: delegated by Nest provider binding
+    RepoAdapter--&gt;&gt;UseCase: persisted domain entity
+    UseCase-&gt;&gt;MsgPort: publishEmail(...)
+    MsgPort-&gt;&gt;MsgAdapter: delegated by Nest provider binding
+    MsgAdapter--&gt;&gt;UseCase: publish result
+    UseCase--&gt;&gt;Controller: output DTO
+    Controller--&gt;&gt;Caller: gRPC response
+</code></pre>
+
+<h3 id="6-3-dependency-flow">6.3 Dependency Flow</h3>
+
+<p>Compile-time dependency should look like this:</p>
+
+<pre><code class="language-txt">
+adapters → application → domain
+adapters → ports
+application → ports
+domain → no infrastructure
+</code></pre>
+
+<p>Runtime call flow may go outward because the use case calls a port and Nest resolves the adapter.</p>
+
+<h3 id="6-4-gateway-boundary">6.4 Gateway Boundary</h3>
+
+<p>A gateway, when present, is outside this service hexagon. It may handle routing, authentication, authorization, request enrichment, aggregation, rate limiting, and tenant extraction. It should not own workflow rules, transmittal rules, document register state transitions, approval rules, or retention rules.</p>
+
+<h3 id="6-5-services-as-main-architectural-units">6.5 Services As Main Architectural Units</h3>
+
+<p>Each service should own its domain rules, use cases, ports, adapters, configuration, tests, and contracts.</p>
+
+<hr>
+
+<h2 id="7-folder-structure">7. Folder Structure</h2>
+
+<h3 id="7-1-recommended-structure">7.1 Recommended Structure</h3>
+
+<pre><code class="language-txt">
+src/
+  app.module.ts
+
+  modules/
+    transmittals/
+      domain/
+        entities/
+        exceptions/
+
+      application/
+        dto/
+          inputs/
+          outputs/
+        use-cases/
+
+      ports/
+        in/
+        out/
+
+      adapters/
+        in/
+          grpc/
+            controllers/
+            dto/
+            proto/
+        out/
+          persistence/
+            prisma/
+
+      transmittals.module.ts
+
+    workflows/
+      domain/
+      application/
+      ports/
+      adapters/
+      workflows.module.ts
+
+  infrastructure/
+    database/
+      prisma/
+        repositories/
+        prisma.module.ts
+        prisma.service.ts
+
+    messaging/
+      ports/
+      adapters/
+        kafka/
+        noop/
+      providers/
+      messaging.module.ts
+
+  common/
+    exceptions/
+    filters/
+    ports/
+
+  shared/
+    utils/
+    constants/
+
+  config/
+    env.validation.ts
+    grpc-contracts.config.ts
+</code></pre>
+
+<h3 id="7-2-layer-responsibilities">7.2 Layer Responsibilities</h3>
+
+<table>
+<thead><tr><th>Folder</th><th>Responsibility</th></tr></thead>
+<tbody>
+<tr><td>`domain`</td><td>Business entities, invariants, domain exceptions</td></tr>
+<tr><td>`application`</td><td>Use cases and application DTOs</td></tr>
+<tr><td>`ports/in`</td><td>Capabilities exposed by the module</td></tr>
+<tr><td>`ports/out`</td><td>External capabilities required by the module</td></tr>
+<tr><td>`adapters/in`</td><td>gRPC/HTTP/message/cron controllers that invoke use cases</td></tr>
+<tr><td>`adapters/out`</td><td>Prisma/Kafka/Redis/gRPC-client implementations of ports</td></tr>
+<tr><td>`infrastructure`</td><td>Shared technical implementation such as Prisma and messaging</td></tr>
+<tr><td>`common`</td><td>Cross-cutting exceptions, filters, and common ports</td></tr>
+<tr><td>`shared`</td><td>Stable utilities and constants</td></tr>
+<tr><td>`config`</td><td>Environment validation and runtime contract registration</td></tr>
+</tbody></table>
+
+<h3 id="7-3-path-aliases">7.3 Path Aliases</h3>
+
+<p>Recommended aliases:</p>
+
+<table>
+<thead><tr><th>Alias</th><th>Target</th></tr></thead>
+<tbody>
+<tr><td>`@modules/*`</td><td>`src/modules/*`</td></tr>
+<tr><td>`@infra/*`</td><td>`src/infrastructure/*`</td></tr>
+<tr><td>`@common/*`</td><td>`src/common/*`</td></tr>
+<tr><td>`@shared/*`</td><td>`src/shared/*`</td></tr>
+<tr><td>`@config/*`</td><td>`src/config/*`</td></tr>
+</tbody></table>
+
+<h3 id="7-4-recommended-structure-for-a-new-module">7.4 Recommended Structure For A New Module</h3>
+
+<pre><code class="language-txt">
+src/modules/&lt;module-name&gt;/
+  domain/
+    entities/
+    exceptions/
+
+  application/
+    dto/
+      inputs/
+      outputs/
+    use-cases/
+
+  ports/
+    in/
+    out/
+
+  adapters/
+    in/
+      grpc/
+        controllers/
+        dto/
+        proto/
+    out/
+      persistence/
+        prisma/
+      messaging/
+      cache/
+      grpc-client/
+
+  &lt;module-name&gt;.module.ts
+</code></pre>
+
+<hr>
+
+<h2 id="8-naming-conventions">8. Naming Conventions</h2>
+
+<table>
+<thead><tr><th>Element</th><th>Convention</th><th>Good Example</th><th>Bad Example</th></tr></thead>
+<tbody>
+<tr><td>Folder</td><td>lowercase plural</td><td>`transmittals`</td><td>`TransmittalModule`</td></tr>
+<tr><td>File</td><td>kebab-case</td><td>`create-transmittal.use-case.ts`</td><td>`CreateTransmittalUsecase.ts`</td></tr>
+<tr><td>Class</td><td>PascalCase with responsibility</td><td>`CreateTransmittalUseCase`</td><td>`TransmittalManager`</td></tr>
+<tr><td>Interface</td><td>descriptive port name</td><td>`TransmittalRepositoryPort`</td><td>`IRepo`</td></tr>
+<tr><td>Token</td><td>uppercase symbol</td><td>`TRANSMITTAL_REPOSITORY_PORT`</td><td>`repo`</td></tr>
+<tr><td>Use case</td><td>verb + business action</td><td>`update-workflow-status.use-case.ts`</td><td>`workflow.processor.ts`</td></tr>
+<tr><td>Adapter</td><td>technology + capability</td><td>`KafkaEmailMessagePublisherAdapter`</td><td>`KafkaService`</td></tr>
+<tr><td>DTO</td><td>direction and purpose</td><td>`CreateTransmittalInput`</td><td>`DataDto`</td></tr>
+<tr><td>Entity</td><td>business noun</td><td>`Transmittal`</td><td>`TransmittalModel`</td></tr>
+<tr><td>Exception</td><td>layer and purpose</td><td>`TransmittalDomainException`</td><td>`CustomError`</td></tr>
+<tr><td>Test</td><td>`.spec.ts`</td><td>`create-transmittal.use-case.spec.ts`</td><td>`test.ts`</td></tr>
+<tr><td>Proto</td><td>module name</td><td>`transmittal.proto`</td><td>`service.proto`</td></tr>
+</tbody></table>
+
+<p>Define each symbol injection token once and import it everywhere. <code>Symbol(&#x27;TOKEN&#x27;) !== Symbol(&#x27;TOKEN&#x27;)</code> if created in two files.</p>
+
+<hr>
+
+<h2 id="9-component-responsibilities">9. Component Responsibilities</h2>
+
+<h3 id="9-1-domain-entities">9.1 Domain Entities</h3>
+
+<p>Domain entities represent business concepts and rules.</p>
+
+<pre><code class="language-ts">
+export class Transmittal {
+  static create(params: CreateParams): Transmittal {
+    if (!params.subject?.trim()) {
+      throw new TransmittalDomainException(
+        &#x27;Subject is required&#x27;,
+        &#x27;SUBJECT_REQUIRED&#x27;,
+      );
+    }
+
+    return new Transmittal(/* ... */);
+  }
+}
+</code></pre>
+
+<p>They should not save to database, publish Kafka messages, read environment variables, or know NestJS decorators.</p>
+
+<h3 id="9-2-domain-exceptions">9.2 Domain Exceptions</h3>
+
+<p>Domain exceptions represent violated business rules.</p>
+
+<pre><code class="language-ts">
+throw new TransmittalDomainException(
+  &#x27;Subject is required&#x27;,
+  &#x27;SUBJECT_REQUIRED&#x27;,
+);
+</code></pre>
+
+<h3 id="9-3-use-cases">9.3 Use Cases</h3>
+
+<p>Use cases orchestrate application behavior:</p>
+
+<pre><code class="language-txt">
+validate application-level rules
+load data through ports
+call domain entity behavior
+save through repository port
+publish events through messaging port
+return output DTO
+</code></pre>
+
+<h3 id="9-4-input-and-output-dtos">9.4 Input And Output DTOs</h3>
+
+<p>Input DTOs define what a use case needs.</p>
+
+<pre><code class="language-ts">
+export interface CreateTransmittalInput {
+  projectId: string;
+  subject: string;
+  documentIds: string[];
+  recipientIds: string[];
+  createdBy: string;
+}
+</code></pre>
+
+<p>Output DTOs define what a use case returns.</p>
+
+<pre><code class="language-ts">
+export interface CreateTransmittalOutput {
+  id: string;
+  transmittalNumber: string;
+  status: string;
+  createdAt: string;
+}
+</code></pre>
+
+<h3 id="9-5-inbound-ports">9.5 Inbound Ports</h3>
+
+<p>Inbound ports define callable application capabilities.</p>
+
+<pre><code class="language-ts">
+export interface CreateTransmittalPort {
+  execute(input: CreateTransmittalInput): Promise&lt;CreateTransmittalOutput&gt;;
+}
+</code></pre>
+
+<h3 id="9-6-outbound-ports">9.6 Outbound Ports</h3>
+
+<p>Outbound ports define external needs.</p>
+
+<pre><code class="language-ts">
+export interface TransmittalRepositoryPort {
+  create(transmittal: Transmittal): Promise&lt;Transmittal&gt;;
+}
+</code></pre>
+
+<pre><code class="language-ts">
+export interface EmailMessagePublisherPort {
+  publishEmail(input: KafkaEmailBody): Promise&lt;void&gt;;
+}
+</code></pre>
+
+<h3 id="9-7-controllers">9.7 Controllers</h3>
+
+<p>Controllers are inbound adapters. They receive protocol-specific requests, map to use case input, call use cases, and map output to protocol responses. They should not contain business rules, call persistence directly, publish broker messages directly, read/write cache directly, call remote services directly, or decide workflow state transitions.</p>
+
+<h3 id="9-8-repository-adapters">9.8 Repository Adapters</h3>
+
+<p>Repository adapters call the selected persistence technology, such as Prisma in this POC, map rows to domain entities, map domain entities to persistence data, and implement business-specific queries required by the port.</p>
+
+<h3 id="9-9-database-ports-and-abstract-repository-handling">9.9 Database Ports And Abstract Repository Handling</h3>
+
+<p>This POC demonstrates two repository abstraction levels:</p>
+
+<table>
+<thead><tr><th>Level</th><th>File</th><th>Responsibility</th></tr></thead>
+<tbody>
+<tr><td>Generic repository contract</td><td><code>src/common/ports/base-repository.port.ts</code></td><td>Defines common persistence operations that many repositories may share.</td></tr>
+<tr><td>Module-specific repository port</td><td><code>src/modules/&lt;module&gt;/ports/out/*.repository.port.ts</code></td><td>Defines business-specific persistence needs for one module.</td></tr>
+<tr><td>Abstract Prisma base repository</td><td><code>src/infrastructure/database/prisma/repositories/base-prisma.repository.ts</code></td><td>Provides reusable Prisma-backed implementations for common repository methods.</td></tr>
+<tr><td>Concrete module repository adapter</td><td><code>src/modules/&lt;module&gt;/adapters/out/persistence/*repository.adapter.ts</code></td><td>Implements the module-specific port and maps between domain and persistence.</td></tr>
+</tbody></table>
+
+<p>The dependency direction is:</p>
+
+<pre><code class="language-txt">
+Use case
+  → module-specific repository port
+    ← concrete repository adapter
+      → abstract base repository helpers
+        → PrismaService
+          → database
+</code></pre>
+
+<p>The use case should only know the module-specific port:</p>
+
+<pre><code class="language-ts">
+constructor(
+  @Inject(TRANSMITTAL_REPOSITORY_PORT)
+  private readonly transmittalRepository: TransmittalRepositoryPort,
+) {}
+</code></pre>
+
+<p>The module-specific port may extend a common base contract when useful:</p>
+
+<pre><code class="language-ts">
+export interface BaseRepositoryPort&lt;TDomain&gt; {
+  findAll(): Promise&lt;TDomain[]&gt;;
+  findById(id: string): Promise&lt;TDomain | null&gt;;
+  create(entity: TDomain): Promise&lt;TDomain&gt;;
+  save(entity: TDomain): Promise&lt;TDomain&gt;;
+  update(id: string, entity: Partial&lt;TDomain&gt;): Promise&lt;TDomain | null&gt;;
+  delete(id: string): Promise&lt;boolean&gt;;
+  softDelete(id: string): Promise&lt;boolean&gt;;
+  exists(id: string): Promise&lt;boolean&gt;;
+}
+</code></pre>
+
+<p>The abstract Prisma repository contains common technical behavior:</p>
+
+<pre><code class="language-ts">
+export abstract class BasePrismaRepository&lt;TDomain extends { id: string }, TPersistence&gt;
+  implements BaseRepositoryPort&lt;TDomain&gt;
+{
+  constructor(
+    protected readonly prisma: PrismaService,
+    private readonly modelName: string,
+    private readonly options: BasePrismaRepositoryOptions = {},
+  ) {}
+
+  protected abstract toDomain(row: TPersistence): TDomain;
+
+  protected abstract toPersistence(entity: Partial&lt;TDomain&gt;): Record&lt;string, unknown&gt;;
+}
+</code></pre>
+
+<p>The important design point is that the abstract class does not remove the need for module-specific repository ports. Common CRUD methods can live in the base class, but business-specific queries should remain explicit in the module repository port.</p>
+
+<p>Example:</p>
+
+<pre><code class="language-ts">
+export interface TransmittalRepositoryPort
+  extends BaseRepositoryPort&lt;Transmittal&gt; {
+  existByProjectAndSubject(projectId: string, subject: string): Promise&lt;boolean&gt;;
+}
+</code></pre>
+
+<p>The concrete adapter then extends the abstract class and implements module-specific mapping and queries:</p>
+
+<pre><code class="language-ts">
+@Injectable()
+export class PrismaTransmittalRepositoryAdapter
+  extends BasePrismaRepository&lt;Transmittal, TransmittalPersistence&gt;
+  implements TransmittalRepositoryPort
+{
+  constructor(prisma: PrismaService) {
+    super(prisma, 'transmittal');
+  }
+
+  async existByProjectAndSubject(projectId: string, subject: string): Promise&lt;boolean&gt; {
+    return this.existsByWhere({
+      projectId,
+      subject: {
+        equals: subject.trim(),
+        mode: 'insensitive',
+      },
+    });
+  }
+
+  protected toDomain(row: TransmittalPersistence): Transmittal {
+    return new Transmittal(/* mapped fields */);
+  }
+
+  protected toPersistence(entity: Partial&lt;Transmittal&gt;): Record&lt;string, unknown&gt; {
+    return { /* mapped fields */ };
+  }
+}
+</code></pre>
+
+<p>Use this pattern carefully:</p>
+
+<ul>
+<li>Put shared, technical CRUD behavior in <code>BasePrismaRepository</code>.</li>
+<li>Put module-specific business queries in the module repository port.</li>
+<li>Keep <code>toDomain</code> and <code>toPersistence</code> explicit in the concrete adapter.</li>
+<li>Do not expose Prisma models or Prisma query details to use cases.</li>
+<li>Do not force every repository to extend the base class if the module has different persistence needs.</li>
+<li>Do not hide meaningful business queries behind generic dynamic methods.</li>
+</ul>
+
+<h3 id="9-10-messaging-adapters">9.10 Messaging Adapters</h3>
+
+<p>Messaging adapters implement messaging ports and hide Kafka/RabbitMQ/SQS or other broker details.</p>
+
+<h3 id="9-11-cache-and-external-service-adapters">9.11 Cache And External Service Adapters</h3>
+
+<p>Cache adapters implement cache-related ports and hide Redis or other cache clients. External service adapters implement outbound ports for remote microservices, third-party APIs, file/object storage, search indexes, or any other external integration. Use cases should depend on these ports, not concrete infrastructure SDKs.</p>
+
+<h3 id="9-12-nest-modules">9.12 Nest Modules</h3>
+
+<p>Nest modules wire dependencies.</p>
+
+<pre><code class="language-ts">
+@Module({
+  providers: [
+    CreateTransmittalUseCase,
+    {
+      provide: TRANSMITTAL_REPOSITORY_PORT,
+      useClass: PrismaTransmittalRepositoryAdapter,
+    },
+  ],
+})
+export class TransmittalsModule {}
+</code></pre>
+
+<h3 id="9-13-persistence-services-and-repositories">9.13 Persistence Services And Repositories</h3>
+
+<p><code>PrismaService</code> manages database connection lifecycle in this POC. <code>BasePrismaRepository</code> may contain common CRUD helpers. Module-specific persistence adapters should contain model name, domain mapping, persistence mapping, and business-specific queries.</p>
+
+<h3 id="9-14-configuration-and-lifecycle-services">9.14 Configuration And Lifecycle Services</h3>
+
+<p>Configuration should validate required environment variables. Lifecycle hooks should close database connections, broker clients, cache clients, remote service clients, cron jobs, and external connections.</p>
+
+<hr>
+
+<h2 id="10-dependency-inversion-in-this-project">10. Dependency Inversion In This Project</h2>
+
+<h3 id="10-1-core-idea">10.1 Core Idea</h3>
+
+<pre><code class="language-txt">
+High-level business logic should depend on abstractions.
+Low-level infrastructure should implement those abstractions.
+</code></pre>
+
+<h3 id="10-2-diagram">10.2 Diagram</h3>
+
+<figure>
+  <img src="assets/abstraction-dependency.svg" alt="Abstraction dependency through ports" style="width:100%;max-width:1120px;border:1px solid #d1d5db;border-radius:8px;">
+  <figcaption>Abstraction dependency: use cases depend on ports, and concrete infrastructure adapters implement those ports.</figcaption>
+</figure>
+
+<pre><code class="language-mermaid">
+flowchart TB
+    subgraph Bad[Bad - Core Depends On Infrastructure]
+      BadUC[CreateTransmittalUseCase] --&gt; BadPrisma[PrismaService]
+      BadUC --&gt; BadKafka[ClientKafka]
+      BadUC --&gt; BadRedis[Redis Client]
+      BadPrisma --&gt; BadDB[(PostgreSQL)]
+      BadKafka --&gt; BadBroker[(Kafka)]
+      BadRedis --&gt; BadCache[(Redis)]
+    end
+
+    subgraph Good[Good - Core Depends On Ports]
+      GoodUC[CreateTransmittalUseCase] --&gt; RepoPort[TransmittalRepositoryPort]
+      GoodUC --&gt; MsgPort[EmailMessagePublisherPort]
+      GoodUC --&gt; CachePort[CachePort when needed]
+      RepoPort --&gt; PrismaAdapter[PrismaTransmittalRepositoryAdapter]
+      MsgPort --&gt; KafkaAdapter[KafkaEmailMessagePublisherAdapter]
+      CachePort --&gt; RedisAdapter[RedisCacheAdapter example]
+      PrismaAdapter --&gt; DB[(PostgreSQL)]
+      KafkaAdapter --&gt; Broker[(Kafka)]
+      RedisAdapter --&gt; Cache[(Redis)]
+    end
+</code></pre>
+
+<h3 id="10-3-correct-example">10.3 Correct Example</h3>
+
+<pre><code class="language-ts">
+@Injectable()
+export class CreateTransmittalUseCase {
+  constructor(
+    @Inject(TRANSMITTAL_REPOSITORY_PORT)
+    private readonly repository: TransmittalRepositoryPort,
+
+    @Inject(EMAIL_MESSAGE_PUBLISHER_PORT)
+    private readonly emailPublisher: EmailMessagePublisherPort,
+  ) {}
+}
+</code></pre>
+
+<h3 id="10-4-incorrect-example">10.4 Incorrect Example</h3>
+
+<pre><code class="language-ts">
+@Injectable()
+export class CreateTransmittalUseCase {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly kafkaClient: ClientKafka,
+  ) {}
+}
+</code></pre>
+
+<h3 id="10-5-nest-provider-binding">10.5 Nest Provider Binding</h3>
+
+<pre><code class="language-ts">
+{
+  provide: TRANSMITTAL_REPOSITORY_PORT,
+  useClass: PrismaTransmittalRepositoryAdapter,
+}
+</code></pre>
+
+<p>This tells Nest: when something asks for <code>TRANSMITTAL_REPOSITORY_PORT</code>, provide <code>PrismaTransmittalRepositoryAdapter</code>.</p>
+
+<hr>
+
+<h2 id="11-communication-scenarios">11. Communication Scenarios</h2>
+
+<h3 id="11-1-scenario-1-gateway-to-microservice-over-grpc">11.1 Scenario 1: Gateway To Microservice Over gRPC</h3>
+
+<p>The gateway is external to the service hexagon.</p>
+
+<p>Flow:</p>
+
+<pre><code class="language-txt">
+HTTP Client
+  → Gateway Controller
+  → Gateway gRPC Client
+  → Microservice gRPC Controller
+  → Use Case
+  → Domain / Ports / Adapters
+</code></pre>
+
+<pre><code class="language-mermaid">
+sequenceDiagram
+    participant C as Client
+    participant G as Gateway
+    participant GC as Gateway gRPC Client
+    participant MC as Microservice gRPC Controller
+    participant UC as Use Case
+    participant DB as Repository Port / Adapter
+
+    C-&gt;&gt;G: HTTP request
+    G-&gt;&gt;GC: Call gRPC client
+    GC-&gt;&gt;MC: gRPC request
+    MC-&gt;&gt;UC: Execute use case
+    UC-&gt;&gt;DB: Save/read through port
+    DB--&gt;&gt;UC: Domain result
+    UC--&gt;&gt;MC: Output DTO
+    MC--&gt;&gt;GC: gRPC response
+    GC--&gt;&gt;G: Result
+    G--&gt;&gt;C: HTTP response
+</code></pre>
+
+<p>Correct:</p>
+
+<pre><code class="language-txt">
+Gateway enriches request with current user ID.
+Microservice validates and applies business rules.
+</code></pre>
+
+<p>Incorrect:</p>
+
+<pre><code class="language-txt">
+Gateway checks whether workflow can be completed.
+Gateway creates transmittal business records directly.
+Gateway decides document approval rules.
+</code></pre>
+
+<h3 id="11-2-scenario-2-inter-module-communication-inside-one-microservice">11.2 Scenario 2: Inter-Module Communication Inside One Microservice</h3>
+
+<p>This is the scenario that most often causes confusion, because the call stays inside one deployed microservice but crosses a module boundary.</p>
+
+<p>The important rule is:</p>
+
+<pre><code class="language-txt">
+From the caller module's point of view, another module is outside its core.
+From the called module's point of view, its use case is an inbound capability.
+</code></pre>
+
+<p>In this POC:</p>
+
+<ul>
+<li><code>workflows</code> owns workflow rules.</li>
+<li><code>transmittals</code> owns transmittal creation rules.</li>
+<li><code>workflows</code> should not create transmittals by directly using the transmittal repository.</li>
+<li><code>workflows</code> should ask the <code>transmittals</code> module to perform its own use case.</li>
+</ul>
+
+<p>Example business flow:</p>
+
+<pre><code class="language-txt">
+Workflow status changes to COMPLETED.
+Workflow module creates a transmittal through Transmittal module.
+</code></pre>
+
+<h4>How To Think About The Ports</h4>
+
+<p>There are two module perspectives.</p>
+
+<table>
+<thead><tr><th>Perspective</th><th>Question</th><th>Port Direction</th><th>Example In This Project</th></tr></thead>
+<tbody>
+<tr><td>Calling module: <code>workflows</code></td><td>What external capability do I need?</td><td>Outbound port</td><td><code>WORKFLOW_TRANSMITTAL_PORT</code> / <code>WorkflowTransmittalPort</code></td></tr>
+<tr><td>Called module: <code>transmittals</code></td><td>What application capability do I expose?</td><td>Inbound port</td><td><code>CREATE_TRANSMITTAL_PORT</code> / <code>CreateTransmittalPort</code></td></tr>
+<tr><td>Adapter between them</td><td>How do I translate the workflow need into the transmittal capability?</td><td>Outbound adapter from <code>workflows</code></td><td><code>TransmittalModuleAdapter</code></td></tr>
+</tbody></table>
+
+<p>This is not contradictory. The same runtime call is outbound for the caller and inbound for the called module.</p>
+
+<h4>Correct Flow</h4>
+
+<pre><code class="language-txt">
+UpdateWorkflowStatusUseCase
+  → WorkflowTransmittalPort
+  → TransmittalModuleAdapter
+  → CreateTransmittalPort
+  → CreateTransmittalUseCase
+</code></pre>
+
+<pre><code class="language-mermaid">
+flowchart LR
+    subgraph Workflows[workflows module]
+      WF[UpdateWorkflowStatusUseCase]
+      WTP[WorkflowTransmittalPort&lt;br/&gt;outbound port]
+      TMA[TransmittalModuleAdapter&lt;br/&gt;outbound adapter]
+    end
+
+    subgraph Transmittals[transmittals module]
+      CTP[CreateTransmittalPort&lt;br/&gt;inbound port]
+      CTU[CreateTransmittalUseCase]
+      TRP[TransmittalRepositoryPort&lt;br/&gt;outbound port]
+    end
+
+    WF --&gt; WTP
+    WTP --&gt; TMA
+    TMA --&gt; CTP
+    CTP --&gt; CTU
+    CTU --&gt; TRP
+</code></pre>
+
+<h4>Where Each File Lives</h4>
+
+<table>
+<thead><tr><th>File</th><th>Module</th><th>Layer</th><th>Why It Lives There</th></tr></thead>
+<tbody>
+<tr><td><code>src/modules/workflows/ports/out/workflow-transmittal.port.ts</code></td><td><code>workflows</code></td><td>Outbound port</td><td>Workflows says, "I need a way to create a transmittal, but I do not care how."</td></tr>
+<tr><td><code>src/modules/workflows/adapters/out/transmittals/transmittal-module.adapter.ts</code></td><td><code>workflows</code></td><td>Outbound adapter</td><td>Adapts the workflow module's need to the transmittal module's public use-case port.</td></tr>
+<tr><td><code>src/modules/transmittals/ports/in/create-transmittal.port.ts</code></td><td><code>transmittals</code></td><td>Inbound port</td><td>Transmittals says, "This is the safe application operation I expose."</td></tr>
+<tr><td><code>src/modules/transmittals/application/use-cases/create-transmittal.use-case.ts</code></td><td><code>transmittals</code></td><td>Use case</td><td>Owns transmittal creation rules and orchestration.</td></tr>
+<tr><td><code>src/modules/transmittals/ports/out/transmittal.repository.port.ts</code></td><td><code>transmittals</code></td><td>Outbound port</td><td>Transmittal use case needs persistence without depending on Prisma.</td></tr>
+<tr><td><code>src/modules/transmittals/adapters/out/persistence/prisma-transmittal.repository.adapter.ts</code></td><td><code>transmittals</code></td><td>Outbound adapter</td><td>Implements persistence details for the transmittal module.</td></tr>
+</tbody></table>
+
+<h4>Caller-Side Outbound Port</h4>
+
+<p>The workflow module defines its need in its own language:</p>
+
+<pre><code class="language-ts">
+export const WORKFLOW_TRANSMITTAL_PORT = Symbol('WORKFLOW_TRANSMITTAL_PORT');
+
+export interface WorkflowTransmittalPort {
+  createTransmittal(input: CreateWorkflowTransmittalInput): Promise&lt;WorkflowTransmittalOutput&gt;;
+}
+</code></pre>
+
+<p>This port belongs to <code>workflows</code> because the workflow use case owns the dependency.</p>
+
+<p>The workflow use case depends on this port:</p>
+
+<pre><code class="language-ts">
+@Injectable()
+export class UpdateWorkflowStatusUseCase {
+  constructor(
+    @Inject(WORKFLOW_TRANSMITTAL_PORT)
+    private readonly workflowTransmittal: WorkflowTransmittalPort,
+  ) {}
+
+  async execute(input: UpdateWorkflowStatusInput): Promise&lt;WorkflowOutput&gt; {
+    // workflow validation and workflow rules happen here
+
+    const transmittal = await this.workflowTransmittal.createTransmittal({
+      projectId: workflow.projectId,
+      subject: workflow.subject,
+      documentIds: workflow.documentIds,
+      recipientIds: workflow.recipientIds,
+      dueDate: workflow.dueDate ?? undefined,
+      remarks: workflow.remarks ?? undefined,
+      createdBy: workflow.createdBy,
+    });
+
+    // workflow completion continues here
+  }
+}
+</code></pre>
+
+<p>The workflow use case does not know:</p>
+
+<ul>
+<li><code>CreateTransmittalUseCase</code></li>
+<li><code>PrismaTransmittalRepositoryAdapter</code></li>
+<li><code>PrismaService</code></li>
+<li>transmittal persistence details</li>
+<li>transmittal controller details</li>
+</ul>
+
+<h4>Called-Side Inbound Port</h4>
+
+<p>The transmittals module exposes a safe application capability:</p>
+
+<pre><code class="language-ts">
+export const CREATE_TRANSMITTAL_PORT = Symbol('CREATE_TRANSMITTAL_PORT');
+
+export interface CreateTransmittalPort {
+  execute(input: CreateTransmittalInput): Promise&lt;CreateTransmittalOutput&gt;;
+}
+</code></pre>
+
+<p>This port belongs to <code>transmittals</code> because the transmittals module owns the use case.</p>
+
+<p>The module exports this port:</p>
+
+<pre><code class="language-ts">
+@Module({
+  providers: [
+    CreateTransmittalUseCase,
+    {
+      provide: CREATE_TRANSMITTAL_PORT,
+      useExisting: CreateTransmittalUseCase,
+    },
+  ],
+  exports: [CREATE_TRANSMITTAL_PORT],
+})
+export class TransmittalsModule {}
+</code></pre>
+
+<p>Exporting the inbound port means other modules can call the application capability without importing the concrete use case class directly.</p>
+
+<h4>Adapter Between Modules</h4>
+
+<p>The adapter lives in the caller module because it satisfies the caller module's outbound port.</p>
+
+<pre><code class="language-ts">
+@Injectable()
+export class TransmittalModuleAdapter implements WorkflowTransmittalPort {
+  constructor(
+    @Inject(CREATE_TRANSMITTAL_PORT)
+    private readonly createTransmittalPort: CreateTransmittalPort,
+  ) {}
+
+  async createTransmittal(
+    input: CreateWorkflowTransmittalInput,
+  ): Promise&lt;WorkflowTransmittalOutput&gt; {
+    return this.createTransmittalPort.execute({
+      projectId: input.projectId,
+      subject: input.subject,
+      documentIds: input.documentIds,
+      recipientIds: input.recipientIds,
+      dueDate: input.dueDate,
+      remarks: input.remarks,
+      createdBy: input.createdBy,
+    });
+  }
+}
+</code></pre>
+
+<p>This adapter is small, but it is useful because it is an anti-corruption layer between module languages:</p>
+
+<ul>
+<li><code>workflows</code> can use <code>CreateWorkflowTransmittalInput</code>.</li>
+<li><code>transmittals</code> can use <code>CreateTransmittalInput</code>.</li>
+<li>Mapping happens at the boundary.</li>
+<li>Future changes in <code>transmittals</code> do not automatically leak into workflow use cases.</li>
+</ul>
+
+<h4>Module Wiring</h4>
+
+<p>The caller module imports the called module and binds its own outbound port to the adapter:</p>
+
+<pre><code class="language-ts">
+@Module({
+  imports: [PrismaModule, TransmittalsModule],
+  providers: [
+    UpdateWorkflowStatusUseCase,
+    {
+      provide: WORKFLOW_TRANSMITTAL_PORT,
+      useClass: TransmittalModuleAdapter,
+    },
+  ],
+})
+export class WorkflowsModule {}
+</code></pre>
+
+<p>At runtime, Nest resolves the chain:</p>
+
+<pre><code class="language-txt">
+UpdateWorkflowStatusUseCase
+  asks for WORKFLOW_TRANSMITTAL_PORT
+  gets TransmittalModuleAdapter
+  adapter asks for CREATE_TRANSMITTAL_PORT
+  gets CreateTransmittalUseCase
+</code></pre>
+
+<h4>Dependency Inversion Thinking</h4>
+
+<p>The dependency inversion idea in this inter-module case is:</p>
+
+<pre><code class="language-txt">
+The workflow use case should depend on what it needs,
+not on the concrete module, concrete use case, or concrete repository that satisfies it.
+</code></pre>
+
+<p>Think about it in two levels.</p>
+
+<p>Level 1: <code>workflows</code> protects its own use case from the concrete transmittal module implementation.</p>
+
+<pre><code class="language-txt">
+UpdateWorkflowStatusUseCase
+  depends on
+WorkflowTransmittalPort
+  implemented by
+TransmittalModuleAdapter
+</code></pre>
+
+<p>Level 2: <code>TransmittalModuleAdapter</code> bridges to the public application contract exposed by <code>transmittals</code>.</p>
+
+<pre><code class="language-txt">
+TransmittalModuleAdapter
+  depends on
+CreateTransmittalPort
+  implemented by
+CreateTransmittalUseCase
+</code></pre>
+
+<p>The adapter is the only class that knows both sides:</p>
+
+<ul>
+<li>It knows the workflow-side outbound port: <code>WorkflowTransmittalPort</code>.</li>
+<li>It knows the transmittal-side inbound port: <code>CreateTransmittalPort</code>.</li>
+<li>It maps workflow input into transmittal input.</li>
+<li>It prevents workflow use cases from depending on transmittal internals.</li>
+</ul>
+
+<pre><code class="language-mermaid">
+flowchart LR
+    subgraph WorkflowCore[Workflow module core]
+      WUC[UpdateWorkflowStatusUseCase]
+      WPort[WorkflowTransmittalPort&lt;br/&gt;outbound abstraction]
+      WUC --&gt;|depends on| WPort
+    end
+
+    subgraph WorkflowAdapter[Workflow outbound adapter]
+      Adapter[TransmittalModuleAdapter]
+    end
+
+    subgraph TransmittalCore[Transmittal module core]
+      TPort[CreateTransmittalPort&lt;br/&gt;inbound abstraction]
+      TUC[CreateTransmittalUseCase]
+      TPort --&gt;|implemented by| TUC
+    end
+
+    WPort --&gt;|implemented by| Adapter
+    Adapter --&gt;|depends on exported port| TPort
+</code></pre>
+
+<p>Simple reading:</p>
+
+<pre><code class="language-txt">
+Use case → own module outbound port → own module adapter → other module inbound port → other module use case
+</code></pre>
+
+<p>Dependency inversion is preserved because:</p>
+
+<ul>
+<li>The workflow use case depends on <code>WorkflowTransmittalPort</code>, not <code>TransmittalModuleAdapter</code>.</li>
+<li>The workflow use case does not depend on <code>CreateTransmittalUseCase</code>.</li>
+<li>The workflow use case does not depend on transmittal persistence.</li>
+<li>The transmittal module exposes a stable inbound port and can change its internal implementation.</li>
+<li>The adapter is replaceable. For example, tomorrow it could call a remote transmittal microservice instead of an in-process module, while <code>UpdateWorkflowStatusUseCase</code> stays unchanged.</li>
+</ul>
+
+<p>If the dependency direction feels confusing, ask this:</p>
+
+<pre><code class="language-txt">
+Can I unit test UpdateWorkflowStatusUseCase by mocking WorkflowTransmittalPort?
+</code></pre>
+
+<p>If yes, the workflow use case is protected. That is the practical value of dependency inversion here.</p>
+
+<h4>Why Not Inject The Transmittal Repository?</h4>
+
+<p>Bad:</p>
+
+<pre><code class="language-ts">
+export class UpdateWorkflowStatusUseCase {
+  constructor(
+    private readonly transmittalRepository: PrismaTransmittalRepositoryAdapter,
+  ) {}
+}
+</code></pre>
+
+<p>Problems:</p>
+
+<ul>
+<li>Workflow bypasses <code>CreateTransmittalUseCase</code>.</li>
+<li>Transmittal creation rules may be skipped.</li>
+<li>Workflow becomes coupled to transmittal persistence.</li>
+<li>Prisma details leak across module boundaries.</li>
+<li>Future changes in transmittal storage can break workflow logic.</li>
+</ul>
+
+<h4>Why Not Inject <code>CreateTransmittalUseCase</code> Directly?</h4>
+
+<p>This is better than injecting a repository, but still not the preferred module boundary.</p>
+
+<pre><code class="language-ts">
+constructor(private readonly createTransmittalUseCase: CreateTransmittalUseCase) {}
+</code></pre>
+
+<p>Problems:</p>
+
+<ul>
+<li>The caller depends on a concrete class from another module.</li>
+<li>The called module cannot easily change its implementation behind a stable token.</li>
+<li>The dependency is less explicit as a public module contract.</li>
+<li>Testing the caller requires knowledge of the concrete use case.</li>
+</ul>
+
+<p>Prefer the exported inbound port:</p>
+
+<pre><code class="language-ts">
+@Inject(CREATE_TRANSMITTAL_PORT)
+private readonly createTransmittalPort: CreateTransmittalPort
+</code></pre>
+
+<h4>Thinking Rule</h4>
+
+<p>Use this decision rule:</p>
+
+<pre><code class="language-txt">
+If Module A needs Module B to perform business behavior:
+  Module A defines an outbound port for what it needs.
+  Module B exposes an inbound port for what it safely allows.
+  Module A owns an outbound adapter that calls Module B's inbound port.
+</code></pre>
+
+<p>Do not create inter-module ports for simple shared constants, pure utility functions, or trivial type reuse. Use this pattern when crossing a real business boundary.</p>
+
+<h3 id="11-3-scenario-3-microservice-to-microservice-direct-communication-without-gateway">11.3 Scenario 3: Microservice-To-Microservice Direct Communication Without Gateway</h3>
+
+<p>Correct flow:</p>
+
+<pre><code class="language-txt">
+Calling Service Use Case
+  → UserDirectoryPort
+  → UserDirectoryGrpcClientAdapter
+  → Remote UserService gRPC Controller
+  → Remote User Use Case
+</code></pre>
+
+<p>Incorrect:</p>
+
+<pre><code class="language-ts">
+@Injectable()
+export class CreateTransmittalUseCase {
+  constructor(private readonly clientGrpc: ClientGrpc) {}
+}
+</code></pre>
+
+<p>Correct:</p>
+
+<pre><code class="language-ts">
+@Injectable()
+export class CreateTransmittalUseCase {
+  constructor(
+    @Inject(USER_DIRECTORY_PORT)
+    private readonly userDirectory: UserDirectoryPort,
+  ) {}
+}
+</code></pre>
+
+<p>Service-to-service calls require timeouts, retries, circuit breakers, idempotency, contract versioning, observability, authentication, and error mapping.</p>
+
+<hr>
+
+<h2 id="12-step-by-step-guide-adding-a-new-feature-module">12. Step-By-Step Guide: Adding A New Feature Module</h2>
+
+<p>1. Identify business capability.</p>
+<p>2. Create domain model.</p>
+<p>3. Create inbound port.</p>
+<p>4. Create outbound ports.</p>
+<p>5. Create input and output DTOs.</p>
+<p>6. Implement use case.</p>
+<p>7. Implement inbound adapter/controller.</p>
+<p>8. Implement outbound adapter/repository.</p>
+<p>9. Bind providers in module.</p>
+<p>10. Add tests.</p>
+<p>11. Add docs, config, and migrations.</p>
+<p>12. Complete review checklist.</p>
+
+<h3 id="review-checklist">Review Checklist</h3>
+
+<table>
+<thead><tr><th>Check</th><th>Yes/No</th></tr></thead>
+<tbody>
+<tr><td>Domain does not import NestJS, Prisma, Kafka, Redis, or gRPC</td><td></td></tr>
+<tr><td>Use case depends only on ports</td><td></td></tr>
+<tr><td>Controller is thin</td><td></td></tr>
+<tr><td>Adapter maps persistence to domain</td><td></td></tr>
+<tr><td>Module provider bindings are explicit</td><td></td></tr>
+<tr><td>Tests cover domain and use case behavior</td><td></td></tr>
+<tr><td>Config values are validated</td><td></td></tr>
+<tr><td>Migration is included</td><td></td></tr>
+<tr><td>gRPC proto is version-controlled</td><td></td></tr>
+</tbody></table>
+
+<hr>
+
+<h2 id="13-best-practices">13. Best Practices</h2>
+
+<h3 id="13-1-keep-domain-pure">13.1 Keep Domain Pure</h3>
+
+<p>Bad:</p>
+
+<pre><code class="language-ts">
+export class Workflow {
+  constructor(private readonly prisma: PrismaService) {}
+}
+</code></pre>
+
+<p>Good:</p>
+
+<pre><code class="language-ts">
+export class Workflow {
+  complete(): Workflow {
+    if (this.status !== &#x27;IN_PROGRESS&#x27;) {
+      throw new DomainException(
+        &#x27;Only in-progress workflow can be completed&#x27;,
+        &#x27;INVALID_WORKFLOW_STATUS&#x27;,
+      );
+    }
+
+    return new Workflow(/* completed state */);
+  }
+}
+</code></pre>
+
+<h3 id="13-2-keep-use-cases-orchestration-focused">13.2 Keep Use Cases Orchestration-Focused</h3>
+
+<p>Use cases should coordinate actions: load entity, check application rules, call domain behavior, save entity, publish event, and return output.</p>
+
+<h3 id="13-3-keep-controllers-thin">13.3 Keep Controllers Thin</h3>
+
+<p>Bad:</p>
+
+<pre><code class="language-ts">
+@GrpcMethod()
+async create(data) {
+  if (!data.subject) throw new Error();
+  return this.prisma.transmittal.create({ data });
+}
+</code></pre>
+
+<p>Good:</p>
+
+<pre><code class="language-ts">
+@GrpcMethod()
+async create(data) {
+  return this.createTransmittalUseCase.execute(data);
+}
+</code></pre>
+
+<h3 id="13-4-use-ports-for-external-effects">13.4 Use Ports For External Effects</h3>
+
+<p>Use ports for database, Kafka, Redis, email, file storage, external APIs, and service-to-service calls.</p>
+
+<h3 id="13-5-keep-validation-at-correct-layer">13.5 Keep Validation At Correct Layer</h3>
+
+<table>
+<thead><tr><th>Validation Type</th><th>Location</th></tr></thead>
+<tbody>
+<tr><td>Transport/request shape</td><td>Controller DTO / validation pipe</td></tr>
+<tr><td>Business invariant</td><td>Domain entity</td></tr>
+<tr><td>Application rule needing repository</td><td>Use case</td></tr>
+<tr><td>Persistence constraint</td><td>Database schema and adapter error mapping</td></tr>
+</tbody></table>
+
+<hr>
+
+<h2 id="14-bad-practices-and-anti-patterns">14. Bad Practices And Anti-Patterns</h2>
+
+<table>
+<thead><tr><th>Anti-Pattern</th><th>Problem</th><th>Correct Alternative</th></tr></thead>
+<tbody>
+<tr><td>Controller talks directly to Prisma</td><td>Business logic and persistence are mixed</td><td>Controller calls use case</td></tr>
+<tr><td>Use case imports concrete Prisma repository</td><td>Infrastructure leaks into application</td><td>Use repository port</td></tr>
+<tr><td>Domain imports Nest decorators or Prisma types</td><td>Domain becomes framework-dependent</td><td>Keep domain pure</td></tr>
+<tr><td>Shared module becomes dumping ground</td><td>Business boundaries disappear</td><td>Keep business code in modules</td></tr>
+<tr><td>Generic repository hides business-specific queries</td><td>Business intent becomes unclear</td><td>Define explicit methods like `existsByProjectIdAndSubject`</td></tr>
+<tr><td>DTO reused as domain entity</td><td>Boundaries are blurred</td><td>Map DTO to entity</td></tr>
+<tr><td>Global modules overused</td><td>Hidden dependencies</td><td>Use global modules only for stable infrastructure</td></tr>
+<tr><td>Circular dependencies</td><td>Runtime and maintenance problems</td><td>Use ports and review boundaries</td></tr>
+<tr><td>Business logic in adapters</td><td>Hard to test and maintain</td><td>Put business rules in domain/use case</td></tr>
+<tr><td>Excessive abstraction</td><td>Slower development</td><td>Create ports only for real boundaries</td></tr>
+<tr><td>Gateway contains service rules</td><td>Rule duplication and inconsistency</td><td>Service owns business rules</td></tr>
+<tr><td>Raw gRPC client in use case</td><td>Transport leaks into business logic</td><td>Use outbound port and gRPC adapter</td></tr>
+<tr><td>Raw Redis/cache client in use case</td><td>Cache implementation leaks into business logic</td><td>Use cache/query port and cache adapter</td></tr>
+<tr><td>Treating Prisma/Kafka/Redis as the full infrastructure list</td><td>Future integrations get placed incorrectly</td><td>Treat every technical mechanism outside the core as infrastructure</td></tr>
+</tbody></table>
+
+<hr>
+
+<h2 id="15-testing-strategy">15. Testing Strategy</h2>
+
+<h3 id="15-1-domain-tests">15.1 Domain Tests</h3>
+
+<p>Should not require NestJS or database.</p>
+
+<p>Examples:</p>
+
+<pre><code class="language-txt">
+Transmittal.create() throws SUBJECT_REQUIRED when subject is empty.
+Workflow.complete() throws error when workflow is cancelled.
+</code></pre>
+
+<h3 id="15-2-use-case-tests-with-mocked-ports">15.2 Use Case Tests With Mocked Ports</h3>
+
+<p>Use mocked repository and messaging ports.</p>
+
+<p>Test:</p>
+
+<pre><code class="language-txt">
+CreateTransmittalUseCase calls repository.
+CreateTransmittalUseCase publishes email event.
+Duplicate subject throws application exception.
+</code></pre>
+
+<h3 id="15-3-adapter-integration-tests">15.3 Adapter Integration Tests</h3>
+
+<p>Use a real or test database for Prisma adapters.</p>
+
+<p>Test:</p>
+
+<pre><code class="language-txt">
+PrismaTransmittalRepositoryAdapter saves and loads transmittal.
+existsByProjectIdAndSubject returns true for duplicate.
+</code></pre>
+
+<h3 id="15-4-contract-tests-for-ports">15.4 Contract Tests For Ports</h3>
+
+<p>Verify that each adapter satisfies the port behavior.</p>
+
+<h3 id="15-5-e2e-tests">15.5 E2E Tests</h3>
+
+<p>Verify runtime wiring through gRPC and module providers.</p>
+
+<h3 id="15-6-test-data-builders">15.6 Test Data Builders</h3>
+
+<p>Use builders for consistent setup.</p>
+
+<pre><code class="language-ts">
+const transmittal = buildTransmittal({
+  subject: &#x27;Test&#x27;,
+});
+</code></pre>
+
+<h3 id="15-7-what-should-not-require-a-database">15.7 What Should Not Require A Database</h3>
+
+<pre><code class="language-txt">
+domain entity tests
+application use case tests with mocked ports
+mapper unit tests
+exception mapping tests
+</code></pre>
+
+<h3 id="15-8-what-should-require-database">15.8 What Should Require Database</h3>
+
+<pre><code class="language-txt">
+Prisma adapter integration tests
+migration tests
+query behavior tests
+transaction behavior tests
+</code></pre>
+
+<h3 id="15-9-grpc-client-contract-tests">15.9 gRPC Client Contract Tests</h3>
+
+<p>Test request mapping, response mapping, timeout behavior, error mapping, and version compatibility.</p>
+
+<h3 id="15-10-inter-module-use-case-call-tests">15.10 Inter-Module Use Case Call Tests</h3>
+
+<p>Test that workflow completion calls <code>TransmittalCreatorPort</code> and that <code>TransmittalModuleClientAdapter</code> calls <code>CreateTransmittalPort</code>.</p>
+
+<hr>
+
+<h2 id="16-production-readiness-checklist">16. Production Readiness Checklist</h2>
+
+<table>
+<thead><tr><th>Area</th><th>Checklist</th></tr></thead>
+<tbody>
+<tr><td>POC cleanup</td><td>Remove unused sample code, rename sample modules, remove hardcoded values</td></tr>
+<tr><td>Error handling</td><td>Standardize domain/application exceptions and gRPC filters</td></tr>
+<tr><td>Observability</td><td>Add structured logging, correlation IDs, metrics, traces</td></tr>
+<tr><td>Secrets</td><td>Use Vault or secret manager, never log secrets</td></tr>
+<tr><td>Config validation</td><td>Validate required env variables and fail fast</td></tr>
+<tr><td>Database migrations</td><td>Review Prisma migrations, indexes, rollback strategy</td></tr>
+<tr><td>Idempotency</td><td>Add idempotency keys for retryable commands</td></tr>
+<tr><td>Transactions</td><td>Review atomic boundaries and consistency requirements</td></tr>
+<tr><td>Messaging reliability</td><td>Consider Outbox Pattern, retries, dead-letter topics</td></tr>
+<tr><td>Cache strategy</td><td>Define whether cache is needed, who owns invalidation, and whether Redis is hidden behind a port</td></tr>
+<tr><td>Security</td><td>Review auth, authorization, service-to-service auth, data masking</td></tr>
+<tr><td>Performance</td><td>Review DB indexes, pagination, Kafka batching, connection pools</td></tr>
+<tr><td>Documentation</td><td>Maintain ADRs, module docs, contract docs, runbooks</td></tr>
+<tr><td>Ownership</td><td>Assign business, technical, and operational owners</td></tr>
+<tr><td>gRPC versioning</td><td>Do not reuse removed field numbers; version contracts when needed</td></tr>
+<tr><td>Gateway boundaries</td><td>Ensure gateway does not own service business rules</td></tr>
+</tbody></table>
+
+<hr>
+
+<h2 id="17-iso-friendly-maintenance-and-governance">17. ISO-Friendly Maintenance And Governance</h2>
+
+<p>This document is ISO-friendly in documentation discipline. It does not claim ISO certification or formal ISO conformance.</p>
+
+<h3 id="17-1-document-owner">17.1 Document Owner</h3>
+
+<pre><code class="language-txt">
+Architecture Owner: &lt;Name / Role&gt;
+Backup Owner: &lt;Name / Role&gt;
+</code></pre>
+
+<h3 id="17-2-review-cadence">17.2 Review Cadence</h3>
+
+<pre><code class="language-txt">
+Quarterly review
+Before major release
+After major architecture change
+After production incident
+After security finding
+</code></pre>
+
+<h3 id="17-3-architecture-decision-records">17.3 Architecture Decision Records</h3>
+
+<p>Create ADRs for major decisions.</p>
+
+<pre><code class="language-txt">
+ADR-001: Use Hexagonal Architecture for service layer
+ADR-002: Use Prisma as one persistence adapter
+ADR-003: Use Kafka for async email event publishing
+ADR-004: Use Redis as a cache adapter if a service requires caching
+ADR-005: Use gRPC for gateway-to-service communication
+ADR-006: Use global MessagingModule for shared messaging port
+</code></pre>
+
+<h3 id="17-4-traceability">17.4 Traceability</h3>
+
+<table>
+<thead><tr><th>Requirement</th><th>Use Case</th><th>Domain Rule</th><th>Port</th><th>Adapter</th><th>Test</th></tr></thead>
+<tbody>
+<tr><td>Workflow completion creates transmittal</td><td>`UpdateWorkflowStatusUseCase`</td><td>`Workflow.complete()`</td><td>`TransmittalCreatorPort`</td><td>`TransmittalModuleClientAdapter`</td><td>`update-workflow-status.use-case.spec.ts`</td></tr>
+<tr><td>Transmittal duplicate subject blocked</td><td>`CreateTransmittalUseCase`</td><td>Application rule</td><td>`TransmittalRepositoryPort`</td><td>`PrismaTransmittalRepositoryAdapter`</td><td>`create-transmittal.use-case.spec.ts`</td></tr>
+</tbody></table>
+
+<h3 id="17-5-risk-register">17.5 Risk Register</h3>
+
+<table>
+<thead><tr><th>Risk</th><th>Impact</th><th>Mitigation</th><th>Owner</th></tr></thead>
+<tbody>
+<tr><td>Over-abstraction</td><td>Slower development</td><td>Review ports and adapters for real value</td><td>Tech Lead</td></tr>
+<tr><td>Business logic in adapters</td><td>Hard to maintain</td><td>Architecture review checklist</td><td>Architect</td></tr>
+<tr><td>Kafka publish failure</td><td>Lost email event</td><td>Outbox pattern</td><td>Backend Lead</td></tr>
+<tr><td>Gateway business logic</td><td>Rule duplication</td><td>Gateway boundary review</td><td>Architect</td></tr>
+<tr><td>Circular module dependency</td><td>Runtime complexity</td><td>Use inbound/outbound ports</td><td>Tech Lead</td></tr>
+</tbody></table>
+
+<h3 id="17-6-evidence-expectations">17.6 Evidence Expectations</h3>
+
+<p>Maintain evidence such as approved architecture documents, ADRs, test reports, code review records, migration logs, deployment records, configuration reviews, and security review notes.</p>
+
+<hr>
+
+<h2 id="18-pros-and-cons">18. Pros And Cons</h2>
+
+<h3 id="18-1-benefits">18.1 Benefits</h3>
+
+<table>
+<thead><tr><th>Benefit</th><th>Explanation</th></tr></thead>
+<tbody>
+<tr><td>Clear boundaries</td><td>Each layer has defined responsibility.</td></tr>
+<tr><td>Testability</td><td>Use cases can be tested with mocked ports.</td></tr>
+<tr><td>Replaceable infrastructure</td><td>Persistence, messaging, cache, transport, external API, file storage, search, and remote-service technologies can be replaced through adapters.</td></tr>
+<tr><td>Maintainable business logic</td><td>Domain and application rules are easier to locate.</td></tr>
+<tr><td>Better reviewability</td><td>Changes can be reviewed by layer and responsibility.</td></tr>
+<tr><td>Audit-friendly traceability</td><td>Requirements can be mapped to use cases, ports, adapters, and tests.</td></tr>
+</tbody></table>
+
+<h3 id="18-2-trade-offs">18.2 Trade-Offs</h3>
+
+<table>
+<thead><tr><th>Trade-Off</th><th>Explanation</th></tr></thead>
+<tbody>
+<tr><td>More files</td><td>Ports, adapters, DTOs, and mappings increase file count.</td></tr>
+<tr><td>More upfront design</td><td>Developers must think about boundaries.</td></tr>
+<tr><td>Learning curve</td><td>Developers familiar with simple NestJS services need onboarding.</td></tr>
+<tr><td>Mapping overhead</td><td>DTO/domain/persistence mapping must be maintained.</td></tr>
+<tr><td>Risk of overengineering</td><td>Simple CRUD may not need full hexagonal structure.</td></tr>
+</tbody></table>
+
+<h3 id="18-3-when-not-to-use-this-architecture">18.3 When Not To Use This Architecture</h3>
+
+<p>Avoid full hexagonal structure for very small applications, mostly static CRUD, short-lived prototypes, or teams not ready for layered discipline.</p>
+
+<h3 id="18-4-when-to-use-a-simpler-nestjs-structure">18.4 When To Use A Simpler NestJS Structure</h3>
+
+<p>A simpler structure may be better for admin-only CRUD tools, internal scripts, small demos, or low-risk utilities.</p>
+
+<hr>
+
+<h2 id="19-faq-for-developers-coming-from-default-nestjs">19. FAQ For Developers Coming From Default NestJS</h2>
+
+<h3 id="why-not-put-everything-in-service">Why not put everything in service?</h3>
+
+<p>Because service classes often become large classes containing business rules mixed with persistence queries, broker publishing, cache access, HTTP/gRPC errors, remote service calls, and external API logic.</p>
+
+<h3 id="why-ports">Why ports?</h3>
+
+<p>Ports define boundaries. They allow use cases to depend on what they need, not on how it is implemented.</p>
+
+<h3 id="why-adapters">Why adapters?</h3>
+
+<p>Adapters implement technical details such as Prisma, Kafka, Redis, gRPC, file storage, search, remote service clients, or external APIs.</p>
+
+<h3 id="where-does-validation-go">Where does validation go?</h3>
+
+<table>
+<thead><tr><th>Validation</th><th>Location</th></tr></thead>
+<tbody>
+<tr><td>Request shape</td><td>Controller DTO / validation pipe</td></tr>
+<tr><td>Business invariant</td><td>Domain entity</td></tr>
+<tr><td>DB-dependent rule</td><td>Use case</td></tr>
+<tr><td>DB uniqueness</td><td>Database constraint plus use case check</td></tr>
+</tbody></table>
+
+<h3 id="where-does-prisma-go">Where does Prisma go?</h3>
+
+<pre><code class="language-txt">
+src/infrastructure/database/prisma
+src/modules/&lt;module&gt;/adapters/out/persistence/prisma
+</code></pre>
+
+<h3 id="where-does-kafka-go">Where does Kafka go?</h3>
+
+<p>Kafka belongs in infrastructure messaging adapters.</p>
+
+<pre><code class="language-txt">
+src/infrastructure/messaging/adapters/kafka
+</code></pre>
+
+<h3 id="where-does-redis-or-cache-go">Where does Redis or cache go?</h3>
+
+<p>Redis belongs in infrastructure cache adapters when a service actually needs caching.</p>
+
+<pre><code class="language-txt">
+src/infrastructure/cache
+src/modules/&lt;module&gt;/adapters/out/cache
+</code></pre>
+
+<p>Use cases should depend on a cache/query port when caching is part of the application workflow. They should not depend directly on a Redis client.</p>
+
+<h3 id="where-should-a-dto-live">Where should a DTO live?</h3>
+
+<table>
+<thead><tr><th>DTO Type</th><th>Location</th></tr></thead>
+<tbody>
+<tr><td>Use case input/output</td><td>`application/dto`</td></tr>
+<tr><td>gRPC request DTO</td><td>`adapters/in/grpc/dto`</td></tr>
+<tr><td>HTTP request DTO</td><td>`adapters/in/http/dto`</td></tr>
+<tr><td>Persistence mapping object</td><td>Adapter/private mapper</td></tr>
+</tbody></table>
+
+<h3 id="how-do-i-avoid-overengineering">How do I avoid overengineering?</h3>
+
+<p>Create ports for real boundaries such as database, message broker, cache, file storage, external APIs, and other services. Do not create ports for every helper function.</p>
+
+<h3 id="should-business-logic-go-in-the-gateway">Should business logic go in the gateway?</h3>
+
+<p>No. Gateway may authenticate, authorize, route, enrich, and aggregate. Service business rules belong in the service.</p>
+
+<h3 id="how-should-one-module-call-another-module">How should one module call another module?</h3>
+
+<pre><code class="language-txt">
+Calling module use case
+  → outbound port
+  → module-client adapter
+  → called module inbound port
+</code></pre>
+
+<h3 id="how-should-one-microservice-call-another-microservice">How should one microservice call another microservice?</h3>
+
+<pre><code class="language-txt">
+Calling service use case
+  → outbound port
+  → gRPC client adapter
+  → remote service gRPC controller
+  → remote service use case
+</code></pre>
+
+<p>Do not inject raw <code>ClientGrpc</code> into use cases.</p>
+
+<hr>
+
+<h2 id="20-glossary">20. Glossary</h2>
+
+<table>
+<thead><tr><th>Term</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td>Hexagon</td><td>Application core containing business logic and ports.</td></tr>
+<tr><td>Port</td><td>Interface defining a boundary between application logic and external actors/systems.</td></tr>
+<tr><td>Adapter</td><td>Technical implementation that connects a port to a real technology or protocol.</td></tr>
+<tr><td>Entity</td><td>Domain object with business state and rules.</td></tr>
+<tr><td>Use case</td><td>Application operation that orchestrates domain logic and ports.</td></tr>
+<tr><td>DTO</td><td>Data Transfer Object used to carry data across boundaries.</td></tr>
+<tr><td>Repository</td><td>Abstraction for persistence operations.</td></tr>
+<tr><td>Dependency inversion</td><td>High-level logic depends on abstractions, not concrete details.</td></tr>
+<tr><td>Boundary</td><td>A separation line between modules, layers, services, or technologies.</td></tr>
+<tr><td>Infrastructure</td><td>Technical implementation area such as framework/runtime, transport, persistence, messaging, cache, file storage, search, observability, configuration, secrets, and external clients.</td></tr>
+<tr><td>Inbound adapter</td><td>Adapter that receives calls into the application, such as gRPC controller.</td></tr>
+<tr><td>Outbound adapter</td><td>Adapter used by the application to call outside systems, such as persistence, messaging, cache, file storage, search, external APIs, or remote services.</td></tr>
+<tr><td>Gateway</td><td>External routing/auth boundary that may call services but should not own service business logic.</td></tr>
+<tr><td>POC</td><td>Proof of concept; a reference implementation requiring production review before real use.</td></tr>
+</tbody></table>
+
+<hr>
+
+<h2 id="21-external-references">21. External References</h2>
+
+<p>These are external references only. This document is ISO-friendly in documentation discipline, but it does not claim ISO conformance, ISO certification, or formal audit approval.</p>
+
+<table>
+<thead><tr><th>Reference</th><th>Link</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td>Alistair Cockburn Hexagonal Architecture</td><td>https://alistair.cockburn.us/hexagonal-architecture</td><td>Original Ports and Adapters concept</td></tr>
+<tr><td>NestJS Custom Providers</td><td>https://docs.nestjs.com/fundamentals/custom-providers</td><td>Provider tokens, `useClass`, `useFactory`, dependency binding</td></tr>
+<tr><td>NestJS Dependency Injection</td><td>https://docs.nestjs.com/fundamentals/dependency-injection</td><td>NestJS DI fundamentals</td></tr>
+<tr><td>NestJS gRPC Microservices</td><td>https://docs.nestjs.com/microservices/grpc</td><td>gRPC transport in NestJS</td></tr>
+<tr><td>NestJS Prisma Recipe</td><td>https://docs.nestjs.com/recipes/prisma</td><td>Prisma integration with NestJS</td></tr>
+<tr><td>Prisma Documentation</td><td>https://www.prisma.io/docs</td><td>Prisma ORM documentation</td></tr>
+<tr><td>gRPC Introduction</td><td>https://grpc.io/docs/what-is-grpc/introduction/</td><td>gRPC concepts and communication model</td></tr>
+<tr><td>KafkaJS Getting Started</td><td>https://kafka.js.org/docs/getting-started</td><td>KafkaJS producer/consumer usage</td></tr>
+<tr><td>Martin Fowler Dependency Injection / IoC</td><td>https://martinfowler.com/articles/injection.html</td><td>Dependency Injection and Inversion of Control concepts</td></tr>
+<tr><td>ISO/IEC/IEEE 42010</td><td>https://www.iso.org/standard/74393.html</td><td>Architecture description standard reference</td></tr>
+<tr><td>ISO 9000 / ISO 9001 Overview</td><td>https://www.iso.org/standards/popular/iso-9000-family</td><td>Quality management overview</td></tr>
+</tbody></table>
+
+<hr>
+
+<h2 id="22-appendix">22. Appendix</h2>
+
+<h3 id="22-1-example-folder-tree">22.1 Example Folder Tree</h3>
+
+<pre><code class="language-txt">
+src/
+  app.module.ts
+  modules/
+    transmittals/
+      domain/
+      application/
+      ports/
+      adapters/
+      transmittals.module.ts
+    workflows/
+      domain/
+      application/
+      ports/
+      adapters/
+      workflows.module.ts
+  infrastructure/
+    database/
+      prisma/
+    messaging/
+      ports/
+      adapters/
+      providers/
+  common/
+  config/
+  shared/
+</code></pre>
+
+<h3 id="22-2-example-module-creation-checklist">22.2 Example Module Creation Checklist</h3>
+
+<table>
+<thead><tr><th>Step</th><th>Done</th></tr></thead>
+<tbody>
+<tr><td>Create module folder under `src/modules`</td><td></td></tr>
+<tr><td>Define domain entity</td><td></td></tr>
+<tr><td>Define domain exceptions</td><td></td></tr>
+<tr><td>Define use case input/output DTOs</td><td></td></tr>
+<tr><td>Define inbound port</td><td></td></tr>
+<tr><td>Define outbound ports</td><td></td></tr>
+<tr><td>Implement use case</td><td></td></tr>
+<tr><td>Implement gRPC/HTTP inbound adapter</td><td></td></tr>
+<tr><td>Implement persistence adapter</td><td></td></tr>
+<tr><td>Bind providers in module</td><td></td></tr>
+<tr><td>Register proto/config if required</td><td></td></tr>
+<tr><td>Add migration</td><td></td></tr>
+<tr><td>Add unit tests</td><td></td></tr>
+<tr><td>Add integration tests</td><td></td></tr>
+<tr><td>Add module README or documentation</td><td></td></tr>
+<tr><td>Update architecture traceability</td><td></td></tr>
+</tbody></table>
+
+<h3 id="22-3-example-pull-request-checklist">22.3 Example Pull Request Checklist</h3>
+
+<table>
+<thead><tr><th>Review Item</th><th>Yes/No</th></tr></thead>
+<tbody>
+<tr><td>Domain layer is free from NestJS/Prisma/Kafka/Redis</td><td></td></tr>
+<tr><td>Use cases depend on ports, not concrete adapters</td><td></td></tr>
+<tr><td>Controllers are thin</td><td></td></tr>
+<tr><td>Repository adapter maps persistence to domain</td><td></td></tr>
+<tr><td>Messaging adapter hides broker-specific details</td><td></td></tr>
+<tr><td>New environment variables are documented and validated</td><td></td></tr>
+<tr><td>Tests added or updated</td><td></td></tr>
+<tr><td>Migration reviewed</td><td></td></tr>
+<tr><td>Error handling reviewed</td><td></td></tr>
+<tr><td>No secrets in logs or code</td><td></td></tr>
+<tr><td>No circular dependency introduced</td><td></td></tr>
+<tr><td>Naming conventions followed</td><td></td></tr>
+<tr><td>Documentation updated</td><td></td></tr>
+</tbody></table>
+
+<h3 id="22-4-example-architecture-review-checklist">22.4 Example Architecture Review Checklist</h3>
+
+<table>
+<thead><tr><th>Question</th><th>Review Notes</th></tr></thead>
+<tbody>
+<tr><td>Does the module represent a clear business capability?</td><td></td></tr>
+<tr><td>Are business rules in domain/use case layers?</td><td></td></tr>
+<tr><td>Are external systems accessed through ports?</td><td></td></tr>
+<tr><td>Are adapters technology-specific and replaceable?</td><td></td></tr>
+<tr><td>Are DTOs and domain entities separated?</td><td></td></tr>
+<tr><td>Are persistence models mapped explicitly?</td><td></td></tr>
+<tr><td>Are gRPC contracts stable and version-safe?</td><td></td></tr>
+<tr><td>Are async operations reliable enough for the use case?</td><td></td></tr>
+<tr><td>Is idempotency required and implemented?</td><td></td></tr>
+<tr><td>Are security boundaries clear?</td><td></td></tr>
+<tr><td>Are tests sufficient for domain, use case, and adapters?</td><td></td></tr>
+</tbody></table>
+
+<p>For formal review, export the document to PDF and store it with version number, approval status, review date, document owner, and change history.</p>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+
+  document.querySelectorAll('pre > code.language-mermaid').forEach((codeBlock) => {
+    const container = document.createElement('div');
+    container.className = 'mermaid';
+    container.textContent = codeBlock.textContent;
+    codeBlock.parentElement.replaceWith(container);
+  });
+
+  mermaid.initialize({
+    startOnLoad: true,
+    securityLevel: 'strict',
+    theme: 'default',
+  });
+</script>
+</body>
+</html>
